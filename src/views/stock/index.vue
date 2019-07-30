@@ -55,7 +55,7 @@
                 trigger="hover"
               >
                 <img :src="scope.row.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="margin:0 auto">
-                <img slot="reference" :src="scope.row.Img + '?x-oss-process=image/resize,h_58'">
+                <img slot="reference" :src="scope.row.Img + '?x-oss-process=image/resize,h_58' + ',' + overTime">
               </el-popover>
             </template>
           </el-table-column>
@@ -124,8 +124,8 @@
             :on-change="handleImgChange"
             :http-request="uploadImgFile"
           >
-            <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar">
-            <i v-else class="el-icon-plus avatar-uploader-icon" />
+            <!-- <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar"> -->
+            <i class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </el-form-item>
         <el-form-item label="标题">
@@ -189,7 +189,8 @@ export default {
         limit: 200,
         SectionNum: ''
       },
-      selectList: []
+      selectList: [],
+      overTime: (new Date()).valueOf()
     }
   },
   created() {
@@ -294,7 +295,7 @@ export default {
       // 文件对象
       form.append('img', fileObj)
       form.append('size', fileObj.size)
-      form.append('sectionNum', this.dialogEditVisible ? this.editSpuInfo.SectionNum : this.addSpuInfo.SectionNum)
+      form.append('sectionNum', this.addSpuInfo.SectionNum === '' ? this.editSpuInfo.SectionNum : this.addSpuInfo.SectionNum)
       uploadSpuPic(form).then(res => {
         if (!res.success) {
           this.$message.error('图片上传失败')
@@ -307,6 +308,8 @@ export default {
       updateErpSpu(this.editSpuInfo).then(res => {
         if (res.success) {
           this.$refs.spuImgUpload.submit()
+          this.$message.success('修改成功')
+          window.applicationCache.update()
           this.getList()
           this.editSpuInfo = {}
         } else {
