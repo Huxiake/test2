@@ -124,8 +124,8 @@
             :on-change="handleImgChange"
             :http-request="uploadImgFile"
           >
-            <!-- <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar"> -->
-            <i class="el-icon-plus avatar-uploader-icon" />
+            <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </el-form-item>
         <el-form-item label="标题">
@@ -145,7 +145,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAddVisible = false;addSpuInfo = {}">取 消</el-button>
+        <el-button @click="dialogAddVisible = false;addSpuInfo = {};imageUrl_temp = ''">取 消</el-button>
         <el-button type="primary" @click="addSubmit">确 定</el-button>
       </div>
     </el-dialog>
@@ -339,6 +339,7 @@ export default {
     },
     addSubmit() {
       this.dialogAddVisible = false
+      this.imageUrl_temp = ''
       this.addSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.addSpuInfo.SectionNum + '.jpg'
       addErpSpu(this.addSpuInfo).then(res => {
         if (res.success) {
