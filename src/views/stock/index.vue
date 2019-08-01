@@ -201,6 +201,7 @@ export default {
         limit: 50,
         SectionNum: ''
       },
+      paginatorInfo: {},
       selectList: [],
       overTime: (new Date()).valueOf()
     }
@@ -322,9 +323,17 @@ export default {
         if (res.success) {
           this.$refs.spuImgUpload.submit()
           this.$message.success('修改成功')
-          window.applicationCache.update()
           this.getList()
-          this.editSpuInfo = {}
+          this.editSpuInfo = {
+            Id:	'',
+            Status: '',
+            SectionNum: '',
+            Name: '',
+            Img: '',
+            GetGoodsNum: '',
+            Price: '',
+            Remark: ''
+          }
         } else {
           this.$message.error('修改失败，请稍后重试')
         }
