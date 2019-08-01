@@ -71,6 +71,18 @@
             </template>
           </el-table-column>
         </el-table>
+        <el-pagination
+          :current-page="paginatorInfo.currentPage + 1"
+          :page-sizes="[50, 100, 200, 300, 400]"
+          :page-size="paginator.limit"
+          :total="paginatorInfo.totalCount"
+          layout="total, sizes, prev, pager, next, jumper"
+          style="margin-top:20px;margin-bottom:20px;float:right"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+          @prev-click="prevPage"
+          @next-click="nextPage"
+        />
       </div>
     </el-card>
     <!-- 编辑spu的dialog -->
@@ -186,7 +198,7 @@ export default {
       stockData: [],
       paginator: {
         offset: 0,
-        limit: 200,
+        limit: 50,
         SectionNum: ''
       },
       selectList: [],
@@ -202,6 +214,7 @@ export default {
       stockList(searchAttrs).then(res => {
         if (res.success) {
           this.stockData = res.data.rows
+          this.paginatorInfo = res.data.paginator
         }
       })
     },
@@ -218,7 +231,7 @@ export default {
       }
     },
     toSectionDetails(row, column, event) {
-      if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '删除') {
+      if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
         this.$router.push({
           name: 'stockDetails',
           params: { id: row.Id }
@@ -351,6 +364,22 @@ export default {
           this.$message.error('新增款式失败，请稍后重试')
         }
       })
+    },
+    // 分页下一页
+    handleCurrentChange(val) {
+      this.paginator.offset = this.paginator.limit * (val - 1)
+      this.getList()
+    },
+    // 分页size改变
+    handleSizeChange(val) {
+      this.paginator.limit = val
+      this.getList()
+    },
+    prevPage() {
+      this.paginator.offset = this.paginator.offset - this.paginator.limit
+    },
+    nextPage() {
+      this.paginator.offset = this.paginator.offset + this.paginator.limit
     }
   }
 }
