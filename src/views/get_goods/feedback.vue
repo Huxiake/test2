@@ -48,8 +48,20 @@
           </el-table-column>
           <el-table-column label="拿货编号" align="center">
             <template slot-scope="scope">
-              <el-input v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.GetGoodsNum" style="width:180px" @change="editFeedbackItem('GetGoodsNum')" />
-              <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.ErpSku.ErpSpu.GetGoodsNum }}</div>
+              <!-- <el-input v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.GetGoodsNum" style="width:180px" @change="editFeedbackItem('GetGoodsNum')" /> -->
+              <el-select v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.GetGoodsNum" filterable allow-create default-first-option style="width:180px" placeholder="请选择" @change="editFeedbackItem('GetGoodsNum')">
+                <el-option
+                  v-for="(item, index) in getGoodsNumList"
+                  :key="index"
+                  :value="item"
+                  @mouseover="enterOption(index)"
+                  @mouseleave="leaveOption()"
+                >
+                  <span style="float: left" @mouseover="enterOption(index)">{{ item }}</span>
+                  <span v-if="index === focusNum" style="float: right; color: #66b1ff; font-size: 13px" @click="handleDefaultNum(item)">默认</span>
+                </el-option>
+              </el-select>
+              <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.GetGoodsNum }}</div>
             </template>
           </el-table-column>
           <el-table-column label="颜色" align="center">
@@ -76,12 +88,6 @@
               <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.Amount }}</div>
             </template>
           </el-table-column>
-          <!-- <el-table-column label="状态" align="center" width="100">
-            <template slot-scope="scope">
-              <el-tag v-if="scope.row.IsDeal === 0" type="info">未处理</el-tag>
-              <el-tag v-if="scope.row.IsDeal === 1" type="success">已处理</el-tag>
-            </template>
-          </el-table-column> -->
           <el-table-column label="操作" align="center" width="200">
             <template slot-scope="scope">
               <el-button v-if="scope.row.Id === editSkuInfo.Id" type="primary" size="mini" @click="handleSkuSave()">保存</el-button>
@@ -96,7 +102,7 @@
 </template>
 
 <script>
-import { getFeedback, markRead, dealFeedback } from '@/api/getGoods'
+import { getFeedback, markRead, dealFeedback, getGetGoodsNumListBySpuID, setDefaultGetGoodsNum } from '@/api/getGoods'
 import qs from 'qs'
 
 export default {
@@ -122,7 +128,9 @@ export default {
         'Amount': ''
       },
       sendSkuInfo: {},
-      feedbackIdList: []
+      feedbackIdList: [],
+      getGoodsNumList: [],
+      focusNum: null
     }
   },
   created() {
@@ -169,11 +177,18 @@ export default {
       this.sendSkuInfo.SkuId = item.ErpGetGoods.ErpSku.Id
       this.sendSkuInfo.SpuId = item.ErpGetGoods.ErpSku.ErpSpu.Id
       // Info
-      this.editSkuInfo.GetGoodsNum = item.ErpGetGoods.ErpSku.ErpSpu.GetGoodsNum
+      this.editSkuInfo.GetGoodsNum = item.ErpGetGoods.GetGoodsNum
       this.editSkuInfo.Price = item.ErpGetGoods.ErpSku.ErpSpu.Price
       this.editSkuInfo.Color = item.ErpGetGoods.ErpSku.Color
       this.editSkuInfo.Size = item.ErpGetGoods.ErpSku.Size
       this.editSkuInfo.Amount = item.ErpGetGoods.Amount
+      // 根据item.spuId拉取getGoodsList, 存至getgoodslist
+      getGetGoodsNumListBySpuID(item.ErpGetGoods.ErpSku.ErpSpu.Id).then(res => {
+        if (res.success) {
+          this.getGoodsNumList = Array.from(res.data.rows, i => { return i.GetGoodsNum })
+          console.log(this.getGoodsNumList)
+        }
+      })
     },
     cancelSkuSave() {
       this.editSkuInfo = {}
@@ -183,6 +198,30 @@ export default {
       this.sendSkuInfo[key] = this.editSkuInfo[key]
     },
     handleSkuSave() {
+      if (this.getGoodsNumList.indexOf(this.editSkuInfo.GetGoodsNum) === -1) {
+        this.sendSkuInfo.newNum = 1
+        this.$confirm('是否将新编号设置为默认拿货编码?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'info'
+        })
+          .then(() => {
+            const data = qs.stringify({ spuID: this.sendSkuInfo.SpuId, num: this.editSkuInfo.GetGoodsNum })
+            setDefaultGetGoodsNum(data).then(res => {
+              if (res.success) {
+                this.$message.success('设置成功!')
+              }
+            })
+          })
+          .finally(() => {
+            this.emitSaveFeedback()
+          })
+      } else {
+        this.sendSkuInfo.newNum = 0
+        this.emitSaveFeedback()
+      }
+    },
+    emitSaveFeedback() {
       const skuInfo = qs.stringify(this.sendSkuInfo)
       dealFeedback(skuInfo).then(res => {
         if (res.success) {
@@ -192,6 +231,28 @@ export default {
         } else {
           this.$message.error('处理失败，请重试!')
         }
+      })
+    },
+    enterOption(index) {
+      console.log(index)
+      this.focusNum = index
+    },
+    leaveOption() {
+      console.log('index')
+      this.focusNum = null
+    },
+    handleDefaultNum(val) {
+      this.$confirm('是否设置为默认拿货编码?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }).then(() => {
+        const data = qs.stringify({ spuID: this.sendSkuInfo.SpuId, num: val })
+        setDefaultGetGoodsNum(data).then(res => {
+          if (res.success) {
+            this.$message.success('设置成功!')
+          }
+        })
       })
     }
   }

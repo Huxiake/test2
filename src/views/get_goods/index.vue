@@ -59,7 +59,7 @@
           </el-table-column>
           <el-table-column label="拿货编号" align="center">
             <template slot-scope="scope">
-              <div>{{ scope.row.ErpSku.ErpSpu.GetGoodsNum }}</div>
+              <div>{{ scope.row.GetGoodsNum }}</div>
             </template>
           </el-table-column>
           <el-table-column label="颜色" align="center">
@@ -105,7 +105,7 @@ export default {
         offset: 0,
         limit: 20,
         OrderNum: '',
-        GoodsStatus: ''
+        GoodsStatus: 'Pending'
       },
       selectList: []
     }
