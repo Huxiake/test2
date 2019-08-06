@@ -58,7 +58,7 @@ export default {
         new QRCode('qrDom' + i, {
           width: 310,
           height: 310,
-          text: `{"SectionNum":"${this.pagedata[i].ErpSku.ErpSpu.SectionNum}","GetGoodsNum":"${this.pagedata[i].GetGoodsNum}","ErpSkuId":"${this.pagedata[i].ErpSku.Id}","Color":"${this.pagedata[i].ErpSku.Color}","Size":"${this.pagedata[i].ErpSku.Size}"}`
+          text: `{"SectionNum":"${this.pagedata[i].ErpSku.ErpSpu.SectionNum}","sc":"${this.pagedata[i].ErpSku.Color}","sz":"${this.pagedata[i].ErpSku.Size}","SkuId":"${this.pagedata[i].ErpSku.Id}","gid":"${this.pagedata[i].Id}"}`
         })
       }
     }

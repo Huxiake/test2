@@ -8,6 +8,7 @@
         <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="17">
             <el-button type="primary" @click="toPrint">打印</el-button>
+            <el-button type="warning" @click="handleScanf">扫描入库</el-button>
           </el-col>
           <el-col :span="2">
             <el-select v-model="paginator.GoodsStatus" placeholder="拿货状态">
@@ -34,8 +35,8 @@
           stripe
           @selection-change="handleSelectionChange"
         >
-          <el-table-column type="selection" width="55" />
-          <el-table-column label="缩略图" align="center">
+          <el-table-column type="selection" width="40" />
+          <el-table-column label="缩略图" align="center" width="100">
             <template slot-scope="scope">
               <el-popover
                 placement="right-start"
@@ -90,6 +91,28 @@
         </el-table>
       </div>
     </el-card>
+    <!-- 扫码入库dialog -->
+    <el-dialog title="扫码入库" :visible.sync="dialogScanfVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
+      <el-input ref="scanInput" v-model="goodsInfo" autofocus placeholder="扫码枪输入" @keyup.enter.native="addGoods" @blur="getFocus" />
+      <el-card v-loading="scanfLoading" element-loading-text="入库中" style="margin-top:10px;">
+        <el-tag
+          v-for="(item, i) in scanfSkuList"
+          :key="i"
+          :type="Number(item.am) > 1 ? 'primary' : 'info'"
+          closable
+          style="margin: 5px"
+          @close="handleClose(item)"
+        >
+          <el-badge :value="item.am" class="item">
+            {{ item.onum + ' / ' + item.sn }}
+          </el-badge>
+        </el-tag>
+      </el-card>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="cancelScanf">取 消</el-button>
+        <el-button type="primary" @click="emitScanf">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -100,6 +123,7 @@ import qs from 'qs'
 export default {
   data() {
     return {
+      dialogScanfVisible: false,
       tableData: [],
       paginator: {
         offset: 0,
@@ -107,7 +131,10 @@ export default {
         OrderNum: '',
         GoodsStatus: 'Pending'
       },
-      selectList: []
+      selectList: [],
+      scanfSkuList: [],
+      infoArr: [],
+      goodsInfo: ''
     }
   },
   created() {
@@ -146,6 +173,34 @@ export default {
         })
         window.open(href, '_blank')
       }
+    },
+    getFocus() {
+      this.$nextTick(() => {
+        this.$refs.scanInput.$el.children[0].focus()
+      })
+    },
+    // 扫码枪输入相关:
+    addGoods() {
+      const goodsInfoStr = this.goodsInfo.replace('?', '').replace('“', '"').replace('”', '"').replace('，', ',').replace('｛', '{').replace('｝', '}').replace('",,', '",')
+      const infoDetails = JSON.parse(goodsInfoStr)
+      this.goodsInfo = ''
+      console.log(infoDetails)
+      this.scanfSkuList.push(infoDetails)
+      // 存入请求参数
+      const temp_info = {}
+      temp_info.gid = Number(infoDetails.gid)
+      temp_info.am = 1
+      this.infoArr.push(temp_info)
+    },
+    handleScanf() {
+      this.dialogScanfVisible = true
+      this.getFocus()
+    },
+    cancelScanf() {
+      this.dialogScanfVisible = false
+      this.scanfSkuList = []
+      this.goodsInfo = ''
+      this.infoArr = []
     }
   }
 }
