@@ -13,8 +13,8 @@
               width="326"
               trigger="hover"
             >
-              <img :src="sectionData.Img + '?x-oss-process=image/resize,h_300,limit_0'">
-              <img slot="reference" :src="sectionData.Img + '?x-oss-process=image/resize,h_120'">
+              <img :src="sectionData.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="width:300px;height:300px;">
+              <img slot="reference" :src="sectionData.Img + '?x-oss-process=image/resize,h_120'" style="width:120px;height:120px;">
             </el-popover>
           </el-col>
           <!-- 款式信息 -->
