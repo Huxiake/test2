@@ -188,6 +188,7 @@ export default {
         Remark: ''
       },
       addSpuInfo: {
+        SectionID: '',
         SectionNum: '',
         Name: '',
         Img: '',
@@ -244,6 +245,7 @@ export default {
       for (let i = 0; i < stockDataLen; i++) {
         if (this.stockData[i]['Id'] === id) {
           this.editSpuInfo = JSON.parse(JSON.stringify(this.stockData[i]))
+          console.log(this.editSpuInfo)
           this.imageUrl_temp = this.editSpuInfo['Img']
         }
       }
@@ -290,13 +292,13 @@ export default {
     handleImgChange(file) {
       console.log(file)
       const isJPG = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png'
-      const isLt200KB = file.raw.size < 307200
+      const isLt200KB = file.raw.size < 614400
 
       if (!isJPG) {
         this.$message.error('图片只能是 JPG 或 PNG 格式')
       }
       if (!isLt200KB) {
-        this.$message.error('图片大小不能超过 300KB')
+        this.$message.error('图片大小不能超过 600KB')
       }
       if (isJPG && isLt200KB) {
         this.imageUrl_temp = URL.createObjectURL(file.raw)
@@ -318,10 +320,15 @@ export default {
     },
     editSubmit() { // 提交修改
       this.dialogEditVisible = false
-      this.editSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.editSpuInfo.SectionNum + '.jpg'
+      if (this.editSpuInfo.Img.indexOf('alibaba') === -1) {
+        this.editSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.editSpuInfo.SectionNum + '.jpg'
+      }
+      console.log('在这里')
       updateErpSpu(this.editSpuInfo).then(res => {
         if (res.success) {
-          this.$refs.spuImgUpload.submit()
+          if (this.editSpuInfo.Img.indexOf('alibaba') === -1) {
+            this.$refs.spuImgUpload.submit()
+          }
           this.$message.success('修改成功')
           this.getList()
           this.editSpuInfo = {
@@ -363,6 +370,7 @@ export default {
       this.dialogAddVisible = false
       this.imageUrl_temp = ''
       this.addSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.addSpuInfo.SectionNum + '.jpg'
+      this.addSpuInfo.SectionID = this.addSpuInfo.SectionNum
       addErpSpu(this.addSpuInfo).then(res => {
         if (res.success) {
           this.$refs.spuImgUpload.submit()
