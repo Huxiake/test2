@@ -5,8 +5,14 @@
         <span>库存管理</span>
       </div>
       <div class="box-tools">
-        <el-row :gutter="16" type="flex" justify="right">
-          <el-col :span="3" :offset="20">
+        <el-row :gutter="8" type="flex" justify="right">
+          <el-col :span="3" :offset="17">
+            <el-select v-model="paginator.Stock" size="medium" placeholder="库存状态">
+              <el-option label="全部" value="" />
+              <el-option label="现货" value="1" />
+            </el-select>
+          </el-col>
+          <el-col :span="4">
             <el-input
               v-model="paginator.SectionNum"
               size="medium"
@@ -41,6 +47,7 @@
       <div class="box-table">
         <!-- spu列表 -->
         <el-table
+          v-loading="tableLoading"
           :data="stockData"
           stripe
           @row-click="toSectionDetails"
@@ -171,6 +178,7 @@ import qs from 'qs'
 export default {
   data() {
     return {
+      tableLoading: false,
       dialogEditVisible: false,
       dialogAddVisible: false,
       parmas: {
@@ -200,7 +208,8 @@ export default {
       paginator: {
         offset: 0,
         limit: 50,
-        SectionNum: ''
+        SectionNum: '',
+        Stock: ''
       },
       paginatorInfo: {},
       selectList: [],
@@ -313,8 +322,11 @@ export default {
       form.append('size', fileObj.size)
       form.append('sectionNum', this.addSpuInfo.SectionNum === '' ? this.editSpuInfo.SectionNum : this.addSpuInfo.SectionNum)
       uploadSpuPic(form).then(res => {
-        if (!res.success) {
-          this.$message.error('图片上传失败')
+        if (res.success) {
+          this.tableLoading = false
+        } else {
+          this.$message.error('图片上传失败, 请重试')
+          this.tableLoading = false
         }
       })
     },
@@ -368,6 +380,7 @@ export default {
     },
     addSubmit() {
       this.dialogAddVisible = false
+      this.tableLoading = true
       this.imageUrl_temp = ''
       this.addSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.addSpuInfo.SectionNum + '.jpg'
       this.addSpuInfo.SectionID = this.addSpuInfo.SectionNum
