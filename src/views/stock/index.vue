@@ -7,7 +7,7 @@
       <div class="box-tools">
         <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="3" :offset="17">
-            <el-select v-model="paginator.Stock" size="medium" placeholder="库存状态">
+            <el-select v-model="paginator.Stock" :disabled="tableLoading" size="medium" placeholder="库存状态" @change="changeSelect">
               <el-option label="全部" value="" />
               <el-option label="现货" value="1" />
             </el-select>
@@ -188,6 +188,7 @@ export default {
       editSpuInfo: {
         Id:	'',
         Status: '',
+        SectionID: '',
         SectionNum: '',
         Name: '',
         Img: '',
@@ -221,10 +222,12 @@ export default {
   },
   methods: {
     getList() {
+      this.tableLoading = true
       const searchAttrs = qs.stringify(this.paginator)
       stockList(searchAttrs).then(res => {
         if (res.success) {
           this.stockData = res.data.rows
+          this.tableLoading = false
           this.paginatorInfo = res.data.paginator
         }
       })
@@ -336,6 +339,7 @@ export default {
         this.editSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.editSpuInfo.SectionNum + '.jpg'
       }
       console.log('在这里')
+      this.editSpuInfo.SectionID = this.editSpuInfo.SectionNum
       updateErpSpu(this.editSpuInfo).then(res => {
         if (res.success) {
           if (this.editSpuInfo.Img.indexOf('alibaba') === -1) {
@@ -410,6 +414,15 @@ export default {
     },
     nextPage() {
       this.paginator.offset = this.paginator.offset + this.paginator.limit
+    },
+    // 选择器改变
+    changeSelect(val) {
+      if (val === '1') {
+        console.log(this.paginatorInfo.totalCount)
+        this.paginator.limit = this.paginatorInfo.totalCount
+      } else {
+        this.paginator.limit = 50
+      }
     }
   }
 }

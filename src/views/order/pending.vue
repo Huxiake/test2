@@ -390,7 +390,6 @@ export default {
           }
           this.skuInfo = temp_skuInfo
         }
-        console.log(this.skuInfo)
       }).catch(e => {
         console.log(e)
       })

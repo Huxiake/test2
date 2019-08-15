@@ -59,7 +59,7 @@
           </el-table-column>
           <el-table-column label="数量" align="center">
             <template slot-scope="scope">
-              <el-input v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.Amount" style="width:180px" />
+              <el-input v-if="scope.row.Id === editSkuInfo.Id" v-model.number="editSkuInfo.Amount" style="width:180px" />
               <span v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.Amount }}</span>
             </template>
           </el-table-column>
@@ -104,7 +104,7 @@ export default {
         'Id': null,
         'Color': '',
         'Size': '',
-        'Amount': '',
+        'Amount': null,
         'SectionNum': ''
       },
       printVisible: false,
@@ -135,27 +135,32 @@ export default {
       this.editSkuInfo = item
     },
     handleSkuSave() {
+      console.log(this.editSkuInfo)
       if (this.editSkuInfo.Id === '1') {
         delete this.editSkuInfo.Id
         addErpSku(this.editSkuInfo).then(res => {
           if (res.success) {
             this.$message.success('添加成功!')
             this.getStockDetails()
+            this.editSkuInfo = {}
           } else {
             this.$message.error('添加失败，请重试!')
+            this.editSkuInfo.Id = '1'
           }
-          this.editSkuInfo = {}
         })
+          .catch(e => {
+            this.editSkuInfo.Id = '1'
+          })
       } else {
         updateErpSku(this.editSkuInfo).then(res => {
           if (res.success) {
             this.$message.success('修改成功!')
             this.getStockDetails()
+            this.editSkuInfo = {}
           } else {
             this.$message.error('修改失败，请重试!')
           }
         })
-        this.editSkuInfo = {}
       }
     },
     handleSkuDelete(id) {
@@ -176,9 +181,7 @@ export default {
     },
     cancelSkuSave() {
       if (this.editSkuInfo.Id === '1') {
-        console.log(this.detailsData)
         this.detailsData = this.detailsData.slice(0, -1)
-        console.log(this.detailsData)
         this.editSkuInfo = {}
       } else {
         this.editSkuInfo = {}
