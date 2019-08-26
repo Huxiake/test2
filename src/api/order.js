@@ -82,3 +82,11 @@ export function getSkuInfoBySectionNum(SectionNum) {
     method: 'get'
   })
 }
+
+// 同步阿里订单
+export function pullAliOrderList() {
+  return request({
+    url: '/order/pullAliOrderList',
+    method: 'post'
+  })
+}
