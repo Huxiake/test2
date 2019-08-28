@@ -5,7 +5,7 @@
         <div class="tabLeft">
           <div style="width:100%;height:20%;font-size:44px;font-weight:bold;margin-left:22px;">{{ item.ErpSku.ErpSpu.SectionNum }}&nbsp;<span style="font-size:40px;font-weight:100">{{ item.ErpSku.Size.replace('码', '') }}</span></div>
           <div style="display:table-cell;width:207px;height:126px;font-size:32px;text-align:center;vertical-align:middle">{{ item.ErpSku.Color }}</div>
-          <div style="width:100%;height:40%;font-size:38px;font-weight:bold;margin-top:8px;margin-left:22px;">{{ item.GetGoodsNum.replace(/\#+/g, `&#10;`).replace(/\*/g, `&nbsp;&nbsp;`) }}</div>
+          <div style="width:100%;height:40%;font-size:30px;font-weight:bold;margin-top:8px;margin-left:22px;">{{ item.GetGoodsNum.replace(/\#+/g, `&#10;`).replace(/\*/g, `&nbsp;&nbsp;`) }}</div>
         </div>
         <div class="tabRight">
           <div :id="'qrDom' + i" />

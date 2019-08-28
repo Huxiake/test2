@@ -24,10 +24,10 @@ export function markRead(params) {
   })
 }
 
-// 处理反馈
-export function dealFeedback(params) {
+// 编辑拿货表
+export function editGetGoodsInfo(params) {
   return request({
-    url: '/getgoods/dealFeedback?' + params,
+    url: '/getgoods/editGetGoodsInfo?' + params,
     method: 'post'
   })
 }

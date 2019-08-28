@@ -109,3 +109,11 @@ export function scaningOut(id) {
     method: 'post'
   })
 }
+
+// 同步阿里商品
+export function putAliProductList() {
+  return request({
+    url: '/stock/pullAliProductList',
+    method: 'post'
+  })
+}

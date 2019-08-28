@@ -301,11 +301,55 @@
         <el-button type="primary" @click="newOrderSubmit">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 添加明细 -->
+    <el-dialog title="添加订单明细" :visible.sync="dialogAddOrderDetalisVisible">
+      <el-form :model="newOrderDetailsInfo" label-position="right" label-width="100px">
+        <el-form-item>
+          <img style="width: 100px; height: 100px" :src="newOrderDetailsInfo.SpuPicURL !== '' ? newOrderDetailsInfo.SpuPicURL : 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/zhanwei.png'">
+        </el-form-item>
+        <el-form-item label="款式编号">
+          <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionID" />
+          <!-- <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionNum" /> -->
+        </el-form-item>
+        <el-form-item label="颜色">
+          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
+          <el-select v-model="newOrderDetailsInfo.Color">
+            <el-option
+              v-for="(item, index) in Object.keys(skuInfo)"
+              :key="index"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="尺码">
+          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
+          <el-select v-model="newOrderDetailsInfo.Size">
+            <el-option
+              v-for="(item, index) in skuInfo[newOrderDetailsInfo.Color]"
+              :key="index"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="售价">
+          <el-input v-model="newOrderDetailsInfo.SalePrice" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="数量">
+          <el-input v-model="newOrderDetailsInfo.Amount" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogAddOrderDetalisVisible = false;skuInfo = {};newOrderDetailsInfoInit()">取 消</el-button>
+        <el-button type="primary" @click="newOrderDetalisSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { orderList, toGetGoodsList, markWaiting, uploadOrder, deleteOrder, addErpOrder, addErpOrderDetails, deleteOrderDetails, getSkuInfoBySectionNum, pullAliOrderList } from '@/api/order'
+import { orderList, toGetGoodsList, markWaiting, uploadOrder, deleteOrder, addErpOrder, addErpOrderDetails, deleteOrderDetails, getSkuInfoBySectionNum, pullAliOrderList, getSpuInfoBySectionID } from '@/api/order'
 import qs from 'qs'
 
 export default {
@@ -320,6 +364,7 @@ export default {
     return {
       tableLoading: false,
       dialogAddOrderVisible: false,
+      dialogAddOrderDetalisVisible: false,
       deleteOrderDetailsBtnId: '',
       newOrderInfo: {},
       newOrderDetailsInfo: {
@@ -442,21 +487,9 @@ export default {
     addOrder() {
       this.dialogAddOrderVisible = true
     },
-    addOrderDetails(data) {
-      if (this.newOrderDetailsInfo.ErpOrder.Id === '') {
-        this.newOrderDetailsInfo.ErpOrder.Id = data.row.Id
-        const details = {
-          ErpOrder: {
-            Id: data.row.Id
-          },
-          Amount: '',
-          Color: '',
-          Size: '',
-          DeliverRemark: '',
-          new: true
-        }
-        data.row.ErpOrderDetails.push(details)
-      }
+    addOrderDetails(orderId) {
+      this.dialogAddOrderDetalisVisible = true
+      this.newOrderDetailsInfo.ErpOrder.Id = orderId
     },
     newOrderSubmit() {
       this.newOrderInfo.ErpStatus = 'pending'
@@ -471,6 +504,32 @@ export default {
         console.log(e)
       })
     },
+    newOrderDetalisSubmit() {
+      console.log(this.newOrderDetailsInfo)
+      addErpOrderDetails(this.newOrderDetailsInfo).then(res => {
+        if (res.success) {
+          this.dialogAddOrderDetalisVisible = false
+          this.$message.success('添加订单详情成功！')
+          this.newOrderDetailsInfoInit()
+          this.getList()
+        }
+      }).catch(e => {
+        console.log(e)
+      })
+    },
+    // newOrderSubmit() {
+    //   this.newOrderInfo.ErpStatus = 'pending'
+    //   addErpOrder(this.newOrderInfo).then(res => {
+    //     if (res.success) {
+    //       this.dialogAddOrderVisible = false
+    //       this.newOrderInfo = {}
+    //       this.$message.success('新增成功！')
+    //       this.getList()
+    //     }
+    //   }).catch(e => {
+    //     console.log(e)
+    //   })
+    // },
     // 分页下一页
     handleCurrentChange(val) {
       this.paginator.offset = this.paginator.limit * (val - 1)
@@ -495,27 +554,6 @@ export default {
         this.deleteOrderDetailsBtnId = ''
       }
     },
-    newOrderDetalisSubmit() {
-      // this.newOrderInfo.ErpStatus = 'pending'
-      addErpOrderDetails(this.newOrderDetailsInfo).then(res => {
-        if (res.success) {
-          this.newOrderDetailsInfo = {
-            ErpOrder: {
-              Id: ''
-            },
-            SectionNum: '',
-            Color: '',
-            Size: '',
-            Amount: '',
-            ErpStatus: 'pending'
-          }
-          this.$message.success('添加订单详情成功！')
-          this.getList()
-        }
-      }).catch(e => {
-        console.log(e)
-      })
-    },
     handleDeleteOrderDetails(Id) {
       this.$confirm('此操作将删除该订单详情, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -532,6 +570,7 @@ export default {
       getSkuInfoBySectionNum(sNum).then(res => {
         if (res.success) {
           const data = res.data.rows
+          console.log(data)
           const temp_skuInfo = {}
           for (let i = 0; i < data.length; i++) {
             temp_skuInfo[data[i].Color] = []
@@ -563,6 +602,37 @@ export default {
         .catch(e => {
           console.log(e)
         })
+    },
+    // 根据填入的款式ID获取spu详情
+    changeSectionID(sID) {
+      getSpuInfoBySectionID(sID).then(res => {
+        if (res.success) {
+          const data = res.data.rows
+          const erpSkus = data.ErpSkus
+          console.log(erpSkus)
+          const temp_skuInfo = {}
+          for (let i = 0; i < erpSkus.length; i++) {
+            temp_skuInfo[erpSkus[i].Color] = []
+            console.log(erpSkus[i].Color)
+            // const item = {}
+            // item.color = data[i].Color
+            // item.size = []
+            for (let j = 0; j < erpSkus.length; j++) {
+              if (erpSkus[j].Color === erpSkus[i].Color) {
+                temp_skuInfo[erpSkus[i].Color].push(erpSkus[j].Size)
+                // item.size.push(data[j].Size)
+                console.log(temp_skuInfo)
+              }
+            }
+          }
+          this.skuInfo = temp_skuInfo
+          console.log(this.skuInfo)
+          this.newOrderDetailsInfo.SpuPicURL = data.Img
+          this.newOrderDetailsInfo.SaleURL = data.OriginURL
+        }
+      }).catch(e => {
+        console.log(e)
+      })
     }
   }
 }

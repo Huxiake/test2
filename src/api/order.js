@@ -90,3 +90,11 @@ export function pullAliOrderList() {
     method: 'post'
   })
 }
+
+// 根据spuID获取spu
+export function getSpuInfoBySectionID(sectionID) {
+  return request({
+    url: '/order/getSpuInfoBySectionID?SectionID=' + sectionID,
+    method: 'get'
+  })
+}

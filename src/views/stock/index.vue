@@ -24,14 +24,15 @@
           </el-col>
         </el-row>
         <el-row style="margin-top:20px;margin-bottom:20px" type="flex" justify="space-around">
-          <el-col :span="22">
+          <el-col :span="21">
             <el-button type="primary" size="medium" @click="handleScaningEnter">入库</el-button>
             <el-button type="warning" size="medium" @click="handleScaningOut">出库</el-button>
             <el-button type="primary" size="medium" @click="toPrint">打印标签</el-button>
           </el-col>
-          <el-col :span="2">
+          <el-col :span="3">
             <el-button size="medium" type="primary" style="font-size:12px;" @click="handleSpuAdd">新增</el-button>
-            <el-upload
+            <el-button size="medium" type="warning" style="font-size:12px;" @click="putAliProduct">同步商品</el-button>
+            <!-- <el-upload
               class="upload-demo"
               action=""
               style="float:right"
@@ -40,7 +41,7 @@
               :http-request="uploadXlsFile"
             >
               <el-button size="medium" type="warning" style="font-size:12px;">上传</el-button>
-            </el-upload>
+            </el-upload> -->
           </el-col>
         </el-row>
       </div>
@@ -172,7 +173,7 @@
 </template>
 
 <script>
-import { stockList, uploadSpuXls, uploadSpuPic, updateErpSpu, deleteErpSpu, addErpSpu } from '@/api/stock'
+import { stockList, uploadSpuXls, uploadSpuPic, updateErpSpu, deleteErpSpu, addErpSpu, putAliProductList } from '@/api/stock'
 import qs from 'qs'
 
 export default {
@@ -423,6 +424,19 @@ export default {
       } else {
         this.paginator.limit = 50
       }
+    },
+    putAliProduct() {
+      this.tableLoading = true
+      putAliProductList().then(res => {
+        if (res.success) {
+          this.$message.success('成功同步' + res.data.num + '个商品!')
+          this.tableLoading = false
+        }
+      })
+        .catch(e => {
+          console.log(e)
+          this.tableLoading = false
+        })
     }
   }
 }

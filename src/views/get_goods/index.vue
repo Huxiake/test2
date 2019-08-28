@@ -8,7 +8,7 @@
         <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="17">
             <el-button type="primary" @click="toPrint">打印</el-button>
-            <el-button type="warning" @click="handleScanf">扫描入库</el-button>
+            <!-- <el-button type="warning" @click="handleScanf">扫描入库</el-button> -->
           </el-col>
           <el-col :span="2">
             <el-select v-model="paginator.GoodsStatus" placeholder="拿货状态">
@@ -58,9 +58,22 @@
               <div>{{ scope.row.ErpSku.SectionNum }}</div>
             </template>
           </el-table-column>
-          <el-table-column label="拿货编号" align="center">
+          <el-table-column label="拿货编号" align="center" width="240">
             <template slot-scope="scope">
-              <div>{{ scope.row.GetGoodsNum }}</div>
+              <el-select v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.GetGoodsNum" filterable allow-create default-first-option style="width:220px" placeholder="请选择">
+                <el-option
+                  v-for="(item, index) in getGoodsNumList"
+                  :key="index"
+                  :value="item"
+                  @mouseover="enterOption(index)"
+                  @mouseleave="leaveOption()"
+                >
+                  <span style="float: left" @mouseover="enterOption(index)">{{ item }}</span>
+                  <span v-if="index === focusNum" style="float: right; color: #66b1ff; font-size: 13px" @click="handleDefaultNum(item)">默认</span>
+                </el-option>
+              </el-select>
+              <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.GetGoodsNum }}</div>
+              <!-- <div>{{ scope.row.GetGoodsNum }}</div> -->
             </template>
           </el-table-column>
           <el-table-column label="颜色" align="center">
@@ -75,7 +88,7 @@
           </el-table-column>
           <el-table-column label="价格" align="center">
             <template slot-scope="scope">
-              <div>{{ scope.row.ErpSku.ErpSpu.Price }}</div>
+              <div>{{ scope.row.ErpSku.Price }}</div>
             </template>
           </el-table-column>
           <el-table-column label="数量" prop="Amount" align="center" />
@@ -87,8 +100,28 @@
               <el-tag v-if="scope.row.IsGet === 1" type="success">已拿货</el-tag>
             </template>
           </el-table-column>
-          <!-- <el-table-column label="操作" prop="" align="center" /> -->
+          <el-table-column label="操作" prop="" align="center" width="138">
+            <template slot-scope="scope">
+              <!-- <el-link :underline="false" @click="handleEditGetGoodsInfo(scope.row)">编辑</el-link> -->
+              <a v-if="scope.row.Id === editSkuInfo.Id" style="color:#409eff" @click="handleSkuSave()">保存<br></a>
+              <a v-if="scope.row.Id === editSkuInfo.Id" @click="cancelEditSku">取消</a>
+              <a v-else style="color:#409eff" @click="handleEditGetGoodsInfo(scope.row)">编辑<br></a>
+              <!-- <el-link v-if="scope.row.Id !== editSkuInfo.Id" :underline="false" style="color:#f56c6c" @click="handleSkuDelete(scope.row.Id)">删除</el-link> -->
+            </template>
+          </el-table-column>
         </el-table>
+        <el-pagination
+          :current-page="paginatorInfo.currentPage"
+          :page-sizes="[10, 50, 100, 200, 300, 400, 500]"
+          :page-size="paginator.limit"
+          :total="paginatorInfo.totalCount"
+          layout="total, sizes, prev, pager, next, jumper"
+          style="margin-top:20px;margin-bottom:20px;float:right"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+          @prev-click="prevPage"
+          @next-click="nextPage"
+        />
       </div>
     </el-card>
     <!-- 扫码入库dialog -->
@@ -117,7 +150,7 @@
 </template>
 
 <script>
-import { getGoodsList } from '@/api/getGoods'
+import { getGoodsList, editGetGoodsInfo, getGetGoodsNumListBySpuID, setDefaultGetGoodsNum } from '@/api/getGoods'
 import qs from 'qs'
 
 export default {
@@ -134,7 +167,18 @@ export default {
       selectList: [],
       scanfSkuList: [],
       infoArr: [],
-      goodsInfo: ''
+      goodsInfo: '',
+      editSkuInfo: {
+        'Id': '',
+        'SkuId': null,
+        'SpuId': null,
+        'GetGoodsNum': '',
+        'Remark': '',
+        'Price': '',
+        'Amount': ''
+      },
+      getGoodsNumList: [],
+      paginatorInfo: {}
     }
   },
   created() {
@@ -142,13 +186,15 @@ export default {
   },
   methods: {
     getList() {
+      this.tableLoading = true
       const searchAttrs = qs.stringify(this.paginator)
       getGoodsList(searchAttrs)
         .then(res => {
           if (res.success) {
             console.log(res)
             this.tableData = res.data.rows
-            console.log('tabledata', this.tableData)
+            this.paginatorInfo = res.data.paginator
+            this.tableLoading = false
           }
         })
         .catch(err => {
@@ -201,6 +247,114 @@ export default {
       this.scanfSkuList = []
       this.goodsInfo = ''
       this.infoArr = []
+    },
+    enterOption(index) {
+      this.focusNum = index
+    },
+    leaveOption() {
+      this.focusNum = null
+    },
+    handleDefaultNum(val) {
+      this.$confirm('是否设置为默认拿货编码?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }).then(() => {
+        const data = qs.stringify({ spuID: this.editSkuInfo.SpuId, num: val })
+        setDefaultGetGoodsNum(data).then(res => {
+          if (res.success) {
+            this.$message.success('设置成功!')
+          }
+        })
+      })
+    },
+    handleEditGetGoodsInfo(item) {
+      // Id
+      this.editSkuInfo.Id = item.Id
+      this.editSkuInfo.SkuId = item.ErpSku.Id
+      this.editSkuInfo.SpuId = item.ErpSku.ErpSpu.Id
+      // Info
+      this.editSkuInfo.GetGoodsNum = item.ErpSku.ErpSpu.GetGoodsNum
+      this.editSkuInfo.Price = item.ErpSku.ErpSpu.Price
+      this.editSkuInfo.Remark = item.Remark
+      // 根据item.spuId拉取getGoodsList, 存至getgoodslist
+      getGetGoodsNumListBySpuID(item.ErpSku.ErpSpu.Id).then(res => {
+        if (res.success) {
+          this.getGoodsNumList = Array.from(res.data.rows, i => { return i.GetGoodsNum })
+          console.log(this.getGoodsNumList)
+        }
+      })
+    },
+    handleSkuSave() {
+      if (this.getGoodsNumList.indexOf(this.editSkuInfo.GetGoodsNum) === -1) {
+        this.editSkuInfo.newNum = 1
+        this.$confirm('是否将新编号设置为默认拿货编码?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'info'
+        })
+          .then(() => {
+            const data = qs.stringify({ spuID: this.editSkuInfo.SpuId, num: this.editSkuInfo.GetGoodsNum })
+            setDefaultGetGoodsNum(data).then(res => {
+              if (res.success) {
+                this.$message.success('设置成功!')
+              }
+            })
+          })
+          .finally(() => {
+            this.emitSkuSave()
+          })
+      } else {
+        this.editSkuInfo.newNum = 0
+        this.emitSkuSave()
+      }
+    },
+    emitSkuSave() {
+      const getGoodsInfo = qs.stringify(this.editSkuInfo)
+      editGetGoodsInfo(getGoodsInfo).then(res => {
+        if (res.success) {
+          this.editSkuInfo = {
+            'Id': '',
+            'SkuId': null,
+            'SpuId': null,
+            'GetGoodsNum': '',
+            'Remark': '',
+            'Price': '',
+            'Amount': ''
+          }
+          this.$message.success('保存成功!')
+          this.getList()
+        } else {
+          this.$message.error('处理失败，请重试!')
+        }
+      })
+    },
+    cancelEditSku() {
+      this.editSkuInfo = {
+        'Id': '',
+        'SkuId': null,
+        'SpuId': null,
+        'GetGoodsNum': '',
+        'Remark': '',
+        'Price': '',
+        'Amount': ''
+      }
+    },
+    // 分页下一页
+    handleCurrentChange(val) {
+      this.paginator.offset = this.paginator.limit * (val - 1)
+      this.getList()
+    },
+    // 分页size改变
+    handleSizeChange(val) {
+      this.paginator.limit = val
+      this.getList()
+    },
+    prevPage() {
+      this.paginator.offset = this.paginator.offset - this.paginator.limit
+    },
+    nextPage() {
+      this.paginator.offset = this.paginator.offset + this.paginator.limit
     }
   }
 }
