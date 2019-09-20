@@ -7,11 +7,11 @@
       <div class="box-tools">
         <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="17">
-            <el-button type="primary" @click="toPrint">打印</el-button>
-            <!-- <el-button type="warning" @click="handleScanf">扫描入库</el-button> -->
+            <el-button type="primary" size="small" @click="toPrint">打印</el-button>
+            <el-button type="warning" size="small" @click="tempPrint">临时打印</el-button>
           </el-col>
           <el-col :span="2">
-            <el-select v-model="paginator.GoodsStatus" placeholder="拿货状态">
+            <el-select v-model="paginator.GoodsStatus" size="small" placeholder="拿货状态">
               <el-option label="全部" value="" />
               <el-option label="待拿货" value="Pending" />
               <el-option label="已拿货" value="Get" />
@@ -21,11 +21,12 @@
           <el-col :span="4">
             <el-input
               v-model="paginator.OrderNum"
+              size="small"
               placeholder="输入订单号可查询"
             />
           </el-col>
           <el-col :span="1.5">
-            <el-button type="primary" @click="getList">查询</el-button>
+            <el-button type="primary" size="small" @click="getList">查询</el-button>
           </el-col>
         </el-row>
       </div>
@@ -125,7 +126,7 @@
       </div>
     </el-card>
     <!-- 扫码入库dialog -->
-    <el-dialog title="扫码入库" :visible.sync="dialogScanfVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
+    <!-- <el-dialog title="扫码入库" :visible.sync="dialogScanfVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
       <el-input ref="scanInput" v-model="goodsInfo" autofocus placeholder="扫码枪输入" @keyup.enter.native="addGoods" @blur="getFocus" />
       <el-card v-loading="scanfLoading" element-loading-text="入库中" style="margin-top:10px;">
         <el-tag
@@ -145,6 +146,14 @@
         <el-button @click="cancelScanf">取 消</el-button>
         <el-button type="primary" @click="emitScanf">确 定</el-button>
       </div>
+    </el-dialog> -->
+    <!-- 临时打印dialog -->
+    <el-dialog title="临时打印" :visible.sync="dialogTempPrintVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
+      <el-input v-model="tempGoodsInfo" type="textarea" autofocus placeholder="按行输入,每行一个拿货信息" autosize />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogTempPrintVisible = false">取 消</el-button>
+        <el-button type="primary" @click="emitTempPrint">确 定</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -157,6 +166,7 @@ export default {
   data() {
     return {
       dialogScanfVisible: false,
+      dialogTempPrintVisible: false,
       tableData: [],
       paginator: {
         offset: 0,
@@ -178,7 +188,8 @@ export default {
         'Amount': ''
       },
       getGoodsNumList: [],
-      paginatorInfo: {}
+      paginatorInfo: {},
+      tempGoodsInfo: ''
     }
   },
   created() {
@@ -355,6 +366,19 @@ export default {
     },
     nextPage() {
       this.paginator.offset = this.paginator.offset + this.paginator.limit
+    },
+    tempPrint() {
+      this.dialogTempPrintVisible = true
+    },
+    emitTempPrint() {
+      // console.log(this.tempGoodsInfo.split('\n'))
+      const { href } = this.$router.resolve({
+        path: '/downGetGoodsTemp',
+        query: {
+          tempGoodsInfo: this.tempGoodsInfo
+        }
+      })
+      window.open(href, '_blank')
     }
   }
 }

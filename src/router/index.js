@@ -141,6 +141,14 @@ export const constantRoutes = [
     meta: { title: '拿货标签打印', icon: 'fankui' }
   },
 
+  {
+    path: '/downGetGoodsTemp',
+    name: 'downGetGoodsTemp',
+    hidden: true,
+    component: () => import('@/views/components/downGetGoodsTemp'),
+    meta: { title: '临时标签打印', icon: 'fankui' }
+  },
+
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
 ]
