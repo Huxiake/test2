@@ -339,7 +339,6 @@ export default {
       if (this.editSpuInfo.Img.indexOf('alibaba') === -1) {
         this.editSpuInfo.Img = 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/' + this.editSpuInfo.SectionNum + '.jpg'
       }
-      console.log('在这里')
       this.editSpuInfo.SectionID = this.editSpuInfo.SectionNum
       updateErpSpu(this.editSpuInfo).then(res => {
         if (res.success) {
