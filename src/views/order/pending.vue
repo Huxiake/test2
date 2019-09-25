@@ -244,7 +244,7 @@
           </el-table-column>
           <el-table-column :formatter="tableFormatter" label="买家留言" prop="BuyerRemake" align="center" />
           <el-table-column :formatter="tableFormatter" label="备注" prop="Remark" align="center" />
-          <el-table-column label="仓库状态" prop="ErpStatus" align="center" width="100">
+          <el-table-column keylabel="仓库状态" align="center" width="100">
             <template slot-scope="scope">
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="small">新订单</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'forPickup'" size="small">处理中</el-tag>

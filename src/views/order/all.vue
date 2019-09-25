@@ -1,115 +1,66 @@
 <template>
   <div class="app-container">
     <el-card class="box-card">
-      <div slot="header" class="clearfix">
-        <span>全部订单</span>
-      </div>
       <div class="box-tools">
-        <el-row :gutter="16" type="flex" justify="right" style="margin-bottom:20px">
-          <el-col :span="6" :offset="14">
-            <el-date-picker
-              v-model="pickerDate"
-              value-format="yyyy-MM-dd 00:00:00"
-              type="daterange"
-              size="medium"
-              range-separator="-"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              @change="testchang"
-            />
-          </el-col>
-          <el-col :span="4">
-            <el-input
-              v-model="paginator.OrderNum"
-              size="medium"
-              placeholder="请输入订单号"
-            />
-          </el-col>
-          <el-col :span="1.5">
-            <el-button type="primary" size="medium" @click="getList">查询</el-button>
-          </el-col>
-        </el-row>
+        <el-tabs v-model="paginator.ErpStatus" @tab-click="handleTab">
+          <el-tab-pane label="全部" name="all" />
+          <el-tab-pane label="未发货" name="pending" />
+          <el-tab-pane label="已发货" name="shiped" />
+          <el-tab-pane label="退款中" name="refund" />
+        </el-tabs>
+        <el-form label-position="right" label-width="70px">
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <el-form-item label="查询订单">
+                <el-input
+                  v-model="paginator.OrderNum"
+                  size="medium"
+                  placeholder="请输入订单号"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col>
+              <el-form-item label="日期范围">
+                <el-date-picker
+                  v-model="pickerDate"
+                  value-format="yyyy-MM-dd 00:00:00"
+                  type="daterange"
+                  size="medium"
+                  range-separator="-"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  @change="changeDate"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+        <el-button size="small" type="primary" icon="el-icon-search" style="display: inline-flex;" @click="getList">查询</el-button>
       </div>
       <div class="box-table">
-        <!-- <el-table
-          :data="tableData"
-          stripe
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="expand">
-            <template slot-scope="scope">
-              <div class="expand-header">订单明细:</div>
-              <el-table
-                :data="scope.row.ErpOrderDetails"
-                header-row-class-name="testStyle"
-                border
-              >
-                <el-table-column label="款号" prop="SectionNum" align="center" />
-                <el-table-column label="颜色" prop="Color" align="center" />
-                <el-table-column label="尺码" prop="Size" align="center" />
-                <el-table-column label="数量" prop="Amount" align="center" />
-                <el-table-column label="状态" prop="ErpStatus" align="center">
-                  <template slot-scope="subScope">
-                    <el-tag v-if="subScope.row.ErpStatus === 'pending'" type="info">未处理</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'get'" type="success">已拿货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" type="success">现货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" type="danger">待拿货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'lack'" type="danger">待处理缺货</el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </template>
-          </el-table-column>
-          <el-table-column label="订单编号" prop="OrderNum" align="center" />
-          <el-table-column label="时间" align="center">
-            <template slot-scope="scope">
-              {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD hh:mm:ss') }}
-            </template>
-          </el-table-column>
-          <el-table-column label="买家公司名" prop="BuyerCompanyName" align="center" />
-          <el-table-column label="买家会员名" prop="BuyerMemberName" align="center" />
-          <el-table-column label="实付金额" prop="GoodsRealPrice" align="center" width="80" />
-          <el-table-column label="买家留言" prop="BuyerRemake" align="center" />
-          <el-table-column label="备注" prop="Rename" align="center" />
-          <el-table-column label="订单状态" prop="OrderStatus" align="center" />
-          <el-table-column label="仓库状态" prop="ErpStatus" align="center" width="100">
-            <template slot-scope="scope">
-              <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info">新订单</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'forPickup'" type="warning">处理中</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'fulfilled'">已配货</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'complete'" type="success">已完成</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'waiting'" type="danger">待货</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="center" width="80">
-            <template slot-scope="scope">
-              <el-button type="danger" size="mini" icon="el-icon-delete" circle @click="deleteOrder(scope.row.Id)" />
-            </template>
-          </el-table-column>
-        </el-table> -->
         <el-table
           v-loading="tableLoading"
           element-loading-text=""
           :data="tableData"
-          header-cell-class-name="orderHeaderStyle"
           cell-class-name="testStyle"
+          :max-height="tableHeight"
           :default-expand-all="true"
           @selection-change="handleSelectionChange"
         >
-          <el-table-column type="selection" width="40" />
-          <el-table-column type="expand" width="20">
+          <el-table-column key="selection" type="selection" width="45" />
+          <el-table-column key="expand" type="expand" width="16">
             <template slot-scope="scope">
               <el-table
                 :data="scope.row.ErpOrderDetails"
                 :show-header="false"
                 header-row-class-name="expand-header"
                 border
-                style="padding:0px;"
+                style="padding:0px;width:99.9%"
                 @cell-mouse-enter="enterOrderDetailsOption"
                 @cell-mouse-leave="leaveOrderDetailsOption"
               >
                 <!-- 商品信息框 -->
-                <el-table-column width="265">
+                <el-table-column key="goodsInfo" width="265">
                   <template slot-scope="subScope">
                     <div class="goodsInfo-left">
                       <el-popover
@@ -138,20 +89,15 @@
                   </template>
                 </el-table-column>
                 <!-- 中间的 -->
-                <el-table-column align="center">
-                  <!-- <template slot-scope="subScope">
-                    <el-input v-if="subScope.row.ErpOrder.Id = newOrderDetailsInfo.ErpOrder.Id && subScope.row.new" v-model="newOrderDetailsInfo.Amount" />
-                    <span v-else>{{ subScope.row.Amount }}</span>
-                  </template> -->
-                </el-table-column>
+                <el-table-column key="centerSpace" />
                 <!-- 状态框 -->
-                <el-table-column prop="ErpStatus" align="center" width="100">
+                <el-table-column key="subErpStatus" align="center" width="100">
                   <template slot-scope="subScope">
-                    <el-tag v-if="subScope.row.ErpStatus === 'pending'" type="info">未处理</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'get'" type="success">已拿货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" type="success">现货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" type="danger">待拿货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'lack'" type="danger">待处理缺货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'pending'" size="mini" type="info">未处理</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'get'" size="mini" type="success">已拿货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" size="mini" type="success">现货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="danger">待拿货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
                   </template>
                 </el-table-column>
                 <!-- 操作框 -->
@@ -165,7 +111,7 @@
               </el-table>
             </template>
           </el-table-column>
-          <el-table-column label="商品信息" prop="OrderNum" width="205" />
+          <el-table-column label="商品信息" prop="OrderNum" width="201" />
           <el-table-column label="时间" align="center">
             <template slot-scope="scope">
               {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD hh:mm:ss') }}
@@ -183,21 +129,32 @@
           </el-table-column>
           <el-table-column :formatter="tableFormatter" label="买家留言" prop="BuyerRemake" align="center" />
           <el-table-column :formatter="tableFormatter" label="备注" prop="Remark" align="center" />
-          <el-table-column label="仓库状态" prop="ErpStatus" align="center" width="100">
+          <el-table-column key="OrderStatus" label="平台状态" align="center" width="97">
             <template slot-scope="scope">
-              <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="small">新订单</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'forPickup'" size="small">处理中</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'waiting'" type="danger" size="small">待货</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'success'" type="success" size="mini" effect="dark">已完成</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'waitsellersend'" size="mini" effect="dark">待发货</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'waitbuyerreceive'" type="warning" size="mini" effect="dark">待收货</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="180">
+          <el-table-column key="ErpStatus" label="仓库状态" prop="ErpStatus" align="center" width="97">
             <template slot-scope="scope">
-              <el-button type="danger" size="mini" @click="handleDeleteOrder(scope.row.Id)">
-                删除
-              </el-button>
-              <el-button size="mini" @click="addOrderDetails(scope.row.Id)">
-                添加
-              </el-button>
+              <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未发货</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" align="center" width="183">
+            <template slot-scope="scope">
+              <DropdownButton
+                :items="[
+                  // { name: 'submit', type: 'submit', show: ['uncommit', 'verify_fail'] },
+                  { name: '详情', type: 'detail', if: true },
+                  { name: '添加', type: 'add', if: true },
+                  { name: '删除', type: 'delete', if: true }
+                ]"
+                :data="scope"
+                @command="handleCommand"
+              />
             </template>
           </el-table-column>
         </el-table>
@@ -215,28 +172,91 @@
         />
       </div>
     </el-card>
+    <!-- 添加明细 -->
+    <el-dialog title="添加订单明细" :visible.sync="dialogAddOrderDetalisVisible">
+      <el-form :model="newOrderDetailsInfo" label-position="right" label-width="100px">
+        <el-form-item>
+          <img style="width: 100px; height: 100px" :src="newOrderDetailsInfo.SpuPicURL !== '' ? newOrderDetailsInfo.SpuPicURL : 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/zhanwei.png'">
+        </el-form-item>
+        <el-form-item label="款式编号">
+          <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionID" />
+          <!-- <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionNum" /> -->
+        </el-form-item>
+        <el-form-item label="颜色">
+          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
+          <el-select v-model="newOrderDetailsInfo.Color">
+            <el-option
+              v-for="(item, index) in Object.keys(skuInfo)"
+              :key="index"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="尺码">
+          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
+          <el-select v-model="newOrderDetailsInfo.Size">
+            <el-option
+              v-for="(item, index) in skuInfo[newOrderDetailsInfo.Color]"
+              :key="index"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="售价">
+          <el-input v-model="newOrderDetailsInfo.SalePrice" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="数量">
+          <el-input v-model="newOrderDetailsInfo.Amount" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogAddOrderDetalisVisible = false;skuInfo = {};newOrderDetailsInfoInit()">取 消</el-button>
+        <el-button type="primary" @click="newOrderDetalisSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { orderList, toGetGoodsList, deleteOrder } from '@/api/order'
+import { orderList, toGetGoodsList, deleteOrder, getSpuInfoBySectionID, addErpOrderDetails } from '@/api/order'
 import qs from 'qs'
+import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
+  components: {
+    DropdownButton
+  },
   data() {
     return {
+      dialogAddOrderDetalisVisible: false,
       tableLoading: false,
       tableData: [],
       pickerDate: '',
+      newOrderInfo: {},
+      newOrderDetailsInfo: {
+        ErpOrder: {
+          Id: ''
+        },
+        SectionNum: '',
+        Color: '',
+        Size: '',
+        Amount: '',
+        ErpStatus: 'pending',
+        SpuPicURL: ''
+      },
       paginator: {
         Date: '',
         offset: 0,
         limit: 20,
         OrderNum: '',
-        ErpStatus: ''
+        ErpStatus: 'pending'
       },
       selectList: [],
-      paginatorInfo: {}
+      paginatorInfo: {},
+      tableHeight: '',
+      skuInfo: {}
     }
   },
   created() {
@@ -244,19 +264,35 @@ export default {
   },
   methods: {
     getList() {
+      this.tableHeight = '500'
       this.tableLoading = true
+      this.paginator.OrderNum = this.paginator.OrderNum.trim()
       const searchAttrs = qs.stringify(this.paginator)
       orderList(searchAttrs)
         .then(res => {
           if (res.success) {
             this.tableData = res.data.rows
             this.paginatorInfo = res.data.paginator
+            this.tableHeight = ''
             this.tableLoading = false
           }
         })
         .catch(err => {
           console.log(err)
         })
+    },
+    newOrderDetailsInfoInit() {
+      this.newOrderDetailsInfo = {
+        ErpOrder: {
+          Id: ''
+        },
+        SectionNum: '',
+        Color: '',
+        Size: '',
+        Amount: '',
+        ErpStatus: 'pending',
+        SpuPicURL: ''
+      }
     },
     dealWithOrder() {
       const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
@@ -271,12 +307,9 @@ export default {
     handleSelectionChange(list) {
       const selectList_temp = []
       for (const i in list) {
-        console.log(list[i]['Id'])
         selectList_temp.push(list[i]['Id'])
       }
       this.selectList = selectList_temp
-      // this.selectList = list
-      console.log(this.selectList)
     },
     deleteOrder(id) {
       this.$confirm('此操作将删除该订单, 是否继续?', '提示', {
@@ -292,10 +325,12 @@ export default {
         })
       })
     },
-    testchang() {
-      console.log(this.pickerDate)
+    changeDate() {
       this.paginator.Date = '["' + this.pickerDate.join('","') + '"]'
-      console.log(this.paginator.Date)
+    },
+    addOrderDetails(orderId) {
+      this.dialogAddOrderDetalisVisible = true
+      this.newOrderDetailsInfo.ErpOrder.Id = orderId
     },
     // 分页下一页
     handleCurrentChange(val) {
@@ -327,6 +362,68 @@ export default {
         res = true
       }
       return res ? '-' : cellValue
+    },
+    // 点击tab页
+    handleTab() {
+      this.getList()
+    },
+    handleCommand({ type, data }) {
+      console.log(type, data)
+      switch (type) {
+        case 'detail':
+          console.log('弹出详情框')
+          break
+        case 'add':
+          this.addOrderDetails(data.Id)
+          break
+        case 'delete':
+          this.handleDeleteOrder(data.Id)
+          break
+      }
+    },
+    // 根据填入的款式ID获取spu详情
+    changeSectionID(sID) {
+      getSpuInfoBySectionID(sID).then(res => {
+        if (res.success) {
+          const data = res.data.rows
+          const erpSkus = data.ErpSkus
+          console.log(erpSkus)
+          const temp_skuInfo = {}
+          for (let i = 0; i < erpSkus.length; i++) {
+            temp_skuInfo[erpSkus[i].Color] = []
+            console.log(erpSkus[i].Color)
+            // const item = {}
+            // item.color = data[i].Color
+            // item.size = []
+            for (let j = 0; j < erpSkus.length; j++) {
+              if (erpSkus[j].Color === erpSkus[i].Color) {
+                temp_skuInfo[erpSkus[i].Color].push(erpSkus[j].Size)
+                // item.size.push(data[j].Size)
+                console.log(temp_skuInfo)
+              }
+            }
+          }
+          this.skuInfo = temp_skuInfo
+          console.log(this.skuInfo)
+          this.newOrderDetailsInfo.SpuPicURL = data.Img
+          this.newOrderDetailsInfo.SaleURL = data.OriginURL
+        }
+      }).catch(e => {
+        console.log(e)
+      })
+    },
+    newOrderDetalisSubmit() {
+      console.log(this.newOrderDetailsInfo)
+      addErpOrderDetails(this.newOrderDetailsInfo).then(res => {
+        if (res.success) {
+          this.dialogAddOrderDetalisVisible = false
+          this.$message.success('添加订单详情成功！')
+          this.newOrderDetailsInfoInit()
+          this.getList()
+        }
+      }).catch(e => {
+        console.log(e)
+      })
     }
   }
 }
@@ -334,7 +431,10 @@ export default {
 
 <style lang="scss">
   .box-card {
-    min-height: calc(100vh - 70px);
+    min-height: calc(100vh - 200px);
+    .box-tools {
+      margin-bottom: 20px;
+    }
     .expand-header {
       font-size: 15px;
       font-weight: bold;
@@ -345,6 +445,17 @@ export default {
     }
     .el-table td, .el-table th {
       padding: 8px 0;
+      .el-table__expanded-cell {
+        padding: 0px;
+      }
+    }
+    .goodsInfo-left {
+      width: 70px;
+      float: left;
+    }
+    .goodsInfo-right {
+      width: 174px;
+      float: left;
     }
   }
 </style>
