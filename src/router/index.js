@@ -77,6 +77,18 @@ export const constantRoutes = [
     meta: { title: '订单管理', icon: 'dingdan' },
     children: [
       {
+        path: 'ali',
+        name: 'ali',
+        component: () => import('@/views/order/aliOrder'),
+        meta: { title: '阿里订单', icon: 'ali' }
+      },
+      {
+        path: 'other',
+        name: 'other',
+        component: () => import('@/views/order/otherOrder'),
+        meta: { title: '自建订单', icon: 'qita' }
+      },
+      {
         path: 'pending',
         name: 'pending',
         component: () => import('@/views/order/pending'),
@@ -93,12 +105,6 @@ export const constantRoutes = [
         name: 'completed',
         component: () => import('@/views/order/completed'),
         meta: { title: '已完成', icon: 'completed' }
-      },
-      {
-        path: 'all',
-        name: 'order',
-        component: () => import('@/views/order/all'),
-        meta: { title: '全部', icon: 'dingdan' }
       }
     ]
   },

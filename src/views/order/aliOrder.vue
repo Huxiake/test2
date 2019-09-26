@@ -35,21 +35,46 @@
             </el-col>
           </el-row>
         </el-form>
-        <el-button size="small" type="primary" icon="el-icon-search" style="display: inline-flex;" @click="getList">查询</el-button>
+        <!-- 按钮组 -->
+        <div class="content__btns">
+          <div class="default">
+            <el-button size="small" type="primary" icon="el-icon-search" @click="getList">查询</el-button>
+          </div>
+          <div v-if="paginator.ErpStatus === 'all'">
+            <!-- TODO -->
+            <!-- 同步订单btn -->
+            <el-button size="small" type="warning" @click="putAliOrder">同步订单</el-button>
+          </div>
+          <div v-else-if="paginator.ErpStatus === 'pending'">
+            <!-- TODO -->
+            <!-- 配货btn -->
+            <el-button size="small" type="warning" @click="1">配货</el-button>
+          </div>
+          <div v-else-if="paginator.ErpStatus === 'shiped'">
+            <!-- TODO -->
+          </div>
+          <div v-else>
+            <!-- TODO -->
+          </div>
+        </div>
       </div>
       <div class="box-table">
+        <!-- 主表 -->
         <el-table
           v-loading="tableLoading"
-          element-loading-text=""
+          element-loading-text="数据加载中"
           :data="tableData"
           cell-class-name="testStyle"
           :max-height="tableHeight"
           :default-expand-all="true"
           @selection-change="handleSelectionChange"
         >
+          <!-- 勾选列 -->
           <el-table-column key="selection" type="selection" width="45" />
+          <!-- 扩展子表列 -->
           <el-table-column key="expand" type="expand" width="16">
             <template slot-scope="scope">
+              <!-- 子表 -->
               <el-table
                 :data="scope.row.ErpOrderDetails"
                 :show-header="false"
@@ -88,9 +113,9 @@
                     </div>
                   </template>
                 </el-table-column>
-                <!-- 中间的 -->
+                <!-- 子表中间空白 -->
                 <el-table-column key="centerSpace" />
-                <!-- 状态框 -->
+                <!-- 子表状态框 -->
                 <el-table-column key="subErpStatus" align="center" width="100">
                   <template slot-scope="subScope">
                     <el-tag v-if="subScope.row.ErpStatus === 'pending'" size="mini" type="info">未处理</el-tag>
@@ -100,7 +125,7 @@
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
                   </template>
                 </el-table-column>
-                <!-- 操作框 -->
+                <!-- 子表操作框 -->
                 <el-table-column align="center" width="180">
                   <!-- <template slot-scope="subScope">
                     <a v-show="deleteOrderDetailsBtnId === subScope.row.Id" type="primary" size="small" @click="handleDeleteOrderDetails(subScope.row.Id)">
@@ -111,6 +136,7 @@
               </el-table>
             </template>
           </el-table-column>
+          <!-- 主表商品信息 -->
           <el-table-column label="商品信息" prop="OrderNum" width="201" />
           <el-table-column label="时间" align="center">
             <template slot-scope="scope">
@@ -136,6 +162,7 @@
               <el-tag v-if="scope.row.OrderStatus === 'waitbuyerreceive'" type="warning" size="mini" effect="dark">待收货</el-tag>
             </template>
           </el-table-column>
+          <!-- 主表仓库状态 -->
           <el-table-column key="ErpStatus" label="仓库状态" prop="ErpStatus" align="center" width="97">
             <template slot-scope="scope">
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未发货</el-tag>
@@ -143,13 +170,14 @@
               <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
             </template>
           </el-table-column>
+          <!-- 主表操作 -->
           <el-table-column label="操作" align="center" width="183">
             <template slot-scope="scope">
               <DropdownButton
                 :items="[
                   // { name: 'submit', type: 'submit', show: ['uncommit', 'verify_fail'] },
                   { name: '详情', type: 'detail', if: true },
-                  { name: '添加', type: 'add', if: true },
+                  // { name: '添加', type: 'add', if: ['all', 'shiped', 'refund'].indexOf(paginator.ErpStatus) === -1 },
                   { name: '删除', type: 'delete', if: true }
                 ]"
                 :data="scope"
@@ -158,6 +186,7 @@
             </template>
           </el-table-column>
         </el-table>
+        <!-- 分页器 -->
         <el-pagination
           :current-page="paginatorInfo.currentPage + 1"
           :page-sizes="[50, 100, 200, 300, 400]"
@@ -172,18 +201,16 @@
         />
       </div>
     </el-card>
-    <!-- 添加明细 -->
+    <!-- 添加明细dialog -->
     <el-dialog title="添加订单明细" :visible.sync="dialogAddOrderDetalisVisible">
       <el-form :model="newOrderDetailsInfo" label-position="right" label-width="100px">
         <el-form-item>
           <img style="width: 100px; height: 100px" :src="newOrderDetailsInfo.SpuPicURL !== '' ? newOrderDetailsInfo.SpuPicURL : 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/zhanwei.png'">
         </el-form-item>
-        <el-form-item label="款式编号">
+        <el-form-item label="款号">
           <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionID" />
-          <!-- <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionNum" /> -->
         </el-form-item>
         <el-form-item label="颜色">
-          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
           <el-select v-model="newOrderDetailsInfo.Color">
             <el-option
               v-for="(item, index) in Object.keys(skuInfo)"
@@ -194,7 +221,6 @@
           </el-select>
         </el-form-item>
         <el-form-item label="尺码">
-          <!-- <el-input v-model="newOrderDetailsInfo.SkuName" autocomplete="off" /> -->
           <el-select v-model="newOrderDetailsInfo.Size">
             <el-option
               v-for="(item, index) in skuInfo[newOrderDetailsInfo.Color]"
@@ -220,7 +246,14 @@
 </template>
 
 <script>
-import { orderList, toGetGoodsList, deleteOrder, getSpuInfoBySectionID, addErpOrderDetails } from '@/api/order'
+import {
+  orderList,
+  toGetGoodsList,
+  deleteOrder,
+  getSpuInfoBySectionID,
+  addErpOrderDetails,
+  pullAliOrderList
+} from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
 
@@ -264,8 +297,7 @@ export default {
   },
   methods: {
     getList() {
-      this.tableHeight = '500'
-      this.tableLoading = true
+      this.tableLoadingMode(true)
       this.paginator.OrderNum = this.paginator.OrderNum.trim()
       const searchAttrs = qs.stringify(this.paginator)
       orderList(searchAttrs)
@@ -273,13 +305,16 @@ export default {
           if (res.success) {
             this.tableData = res.data.rows
             this.paginatorInfo = res.data.paginator
-            this.tableHeight = ''
-            this.tableLoading = false
+            this.tableLoadingMode(false)
           }
         })
         .catch(err => {
           console.log(err)
         })
+    },
+    tableLoadingMode(sign) {
+      this.tableHeight = sign ? '500' : ''
+      this.tableLoading = sign
     },
     newOrderDetailsInfoInit() {
       this.newOrderDetailsInfo = {
@@ -294,6 +329,21 @@ export default {
         SpuPicURL: ''
       }
     },
+    // 同步阿里订单
+    putAliOrder() {
+      this.tableLoadingMode(true)
+      pullAliOrderList().then(res => {
+        if (res.success) {
+          this.$message.success('同步成功!')
+          this.tableLoadingMode(false)
+          this.getList()
+        }
+      })
+        .catch(e => {
+          console.log(e)
+        })
+    },
+    // 配货
     dealWithOrder() {
       const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
       toGetGoodsList(orderList)
@@ -311,6 +361,7 @@ export default {
       }
       this.selectList = selectList_temp
     },
+    // 删除订单
     deleteOrder(id) {
       this.$confirm('此操作将删除该订单, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -434,6 +485,12 @@ export default {
     min-height: calc(100vh - 200px);
     .box-tools {
       margin-bottom: 20px;
+      .content__btns {
+        display: inline-flex;
+        >div button {
+          margin-left: 8px;
+        }
+      }
     }
     .expand-header {
       font-size: 15px;
