@@ -7,7 +7,7 @@
       <div class="box-tools">
         <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="3" :offset="17">
-            <el-select v-model="paginator.Stock" :disabled="tableLoading" size="medium" placeholder="库存状态" @change="changeSelect">
+            <el-select v-model="paginator.Stock" :disabled="tableLoading" size="mini" placeholder="库存状态" @change="changeSelect">
               <el-option label="全部" value="" />
               <el-option label="现货" value="1" />
             </el-select>
@@ -15,41 +15,43 @@
           <el-col :span="4">
             <el-input
               v-model="paginator.SectionNum"
-              size="medium"
+              size="mini"
               placeholder="请输入款号"
             />
           </el-col>
           <el-col :span="1.5">
-            <el-button type="primary" size="medium" @click="getList">查询</el-button>
+            <el-button type="primary" size="mini" @click="getList">查询</el-button>
           </el-col>
         </el-row>
-        <el-row style="margin-top:20px;margin-bottom:20px" type="flex" justify="space-around">
-          <el-col :span="21">
-            <el-button type="primary" size="medium" @click="handleScaningEnter">入库</el-button>
-            <el-button type="warning" size="medium" @click="handleScaningOut">出库</el-button>
-            <el-button type="primary" size="medium" @click="toPrint">打印标签</el-button>
-          </el-col>
-          <el-col :span="3">
-            <el-button size="medium" type="primary" style="font-size:12px;" @click="handleSpuAdd">新增</el-button>
-            <el-button size="medium" type="warning" style="font-size:12px;" @click="putAliProduct">同步商品</el-button>
-            <!-- <el-upload
-              class="upload-demo"
-              action=""
-              style="float:right"
-              :show-file-list="false"
-              :before-upload="beforeXlsUpload"
-              :http-request="uploadXlsFile"
-            >
-              <el-button size="medium" type="warning" style="font-size:12px;">上传</el-button>
-            </el-upload> -->
-          </el-col>
-        </el-row>
+        <div class="content__btns">
+          <div class="content__btns__result">
+            <el-button type="primary" size="mini" @click="handleScaningEnter">入库</el-button>
+            <el-button type="warning" size="mini" @click="handleScaningOut">出库</el-button>
+            <el-button type="primary" size="mini" @click="toPrint">打印标签</el-button>
+            <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条订单信息</span>
+          </div>
+          <div class="content__btns__group">
+            <el-button size="mini" type="primary" style="font-size:12px;" @click="handleSpuAdd">新增</el-button>
+            <el-button size="mini" type="warning" style="font-size:12px;" @click="putAliProduct">同步商品</el-button>
+          </div>
+        </div>
+        <!-- <el-upload
+          class="upload-demo"
+          action=""
+          style="float:right"
+          :show-file-list="false"
+          :before-upload="beforeXlsUpload"
+          :http-request="uploadXlsFile"
+        >
+          <el-button size="medium" type="warning" style="font-size:12px;">上传</el-button>
+        </el-upload> -->
       </div>
       <div class="box-table">
         <!-- spu列表 -->
         <el-table
           v-loading="tableLoading"
           :data="stockData"
+          :max-height="tableHeight"
           stripe
           @row-click="toSectionDetails"
           @selection-change="handleSelectionChange"
@@ -180,6 +182,7 @@ export default {
   data() {
     return {
       tableLoading: false,
+      tableHeight: '',
       dialogEditVisible: false,
       dialogAddVisible: false,
       parmas: {
@@ -244,6 +247,10 @@ export default {
         })
         window.open(href, '_blank')
       }
+    },
+    tableLoadingMode(sign) {
+      this.tableHeight = sign ? '500' : ''
+      this.tableLoading = sign
     },
     toSectionDetails(row, column, event) {
       if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
@@ -446,6 +453,29 @@ export default {
     min-height: calc(100vh - 70px);
     & a {
       color: #409eff;
+    }
+    .content__btns {
+      display: inline-flex;
+      width: 100%;
+      margin: 15px 0;
+      // 结果条数
+      .content__btns__result {
+        flex: 1;
+        font-size: 12px;
+        line-height: 32px;
+        .el-button+span {
+          margin-left: 5px;
+        }
+        .el-button+.el-button {
+          margin-left: 5px;
+        }
+      }
+      .content__btns__group {
+        line-height: 30px;
+        .el-button+.el-button {
+          margin-left: 5px;
+        }
+      }
     }
   }
   .avatar-uploader .el-upload {

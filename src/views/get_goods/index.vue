@@ -44,8 +44,8 @@
                 width="326"
                 trigger="hover"
               >
-                <img :src="scope.row.ErpSku.ErpSpu.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="margin:0 auto;width:300px;height:300px">
-                <img slot="reference" :src="scope.row.ErpSku.ErpSpu.Img + '?x-oss-process=image/resize,h_58'" style="width:58px;height:58px">
+                <img :src="scope.row.ErpSku.ErpSpu.Img && scope.row.ErpSku.ErpSpu.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="margin:0 auto;width:300px;height:300px">
+                <img slot="reference" :src="scope.row.ErpSku.ErpSpu.Img && scope.row.ErpSku.ErpSpu.Img + '?x-oss-process=image/resize,h_58'" style="width:58px;height:58px">
               </el-popover>
             </template>
           </el-table-column>

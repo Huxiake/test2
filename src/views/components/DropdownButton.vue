@@ -15,7 +15,7 @@
         size="medium"
         plain
       >
-        <div class="dropdownBtn-name" @click.stop="() => { !name && handleCommand(itemList[0]) }">
+        <div v-loading="itemList[0].loading" element-loading-spinner="el-icon-loading" element-loading-custom-class="down-loading" class="dropdownBtn-name" @click.stop="() => { !name && handleCommand(itemList[0]) }">
           {{ name || itemList[0].name }}
         </div>
         <i class="el-icon-arrow-down el-icon--right" />
@@ -119,6 +119,15 @@ export default {
     margin-top: 4px;
     margin-left: 8px;
     font-size: 12px;
+  }
+}
+</style>
+
+<style lang="scss">
+.el-loading-mask.down-loading {
+  .el-loading-spinner {
+    top: 0;
+    margin-top: 0;
   }
 }
 </style>

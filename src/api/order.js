@@ -91,6 +91,14 @@ export function pullAliOrderList() {
   })
 }
 
+// 获取阿里订单详情
+export function pullAliOrderDetail(params) {
+  return request({
+    url: '/order/getAndPullAliOrder?OrderIDList=' + params,
+    method: 'get'
+  })
+}
+
 // 根据spuID获取spu
 export function getSpuInfoBySectionID(sectionID) {
   return request({

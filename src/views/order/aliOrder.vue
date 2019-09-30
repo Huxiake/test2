@@ -6,6 +6,7 @@
           <el-tab-pane label="全部" name="all" />
           <el-tab-pane label="未发货" name="pending" />
           <el-tab-pane label="已发货" name="shiped" />
+          <el-tab-pane label="已完成" name="success" />
           <el-tab-pane label="退款中" name="refund" />
         </el-tabs>
         <el-form label-position="right" label-width="70px">
@@ -36,25 +37,31 @@
           </el-row>
         </el-form>
         <!-- 按钮组 -->
-        <div class="content__btns">
-          <div class="default">
-            <el-button size="small" type="primary" icon="el-icon-search" @click="getList">查询</el-button>
+        <div class="order_content__btns">
+          <div class="content__btns__result">
+            <div>
+              <el-button size="mini" type="primary" icon="el-icon-search" @click="getList">查询</el-button>
+            </div>
+            <div v-if="paginator.ErpStatus === 'all'">
+              <!-- TODO -->
+              <!-- 同步订单btn -->
+              <el-button size="mini" type="warning" @click="putAliOrder">同步订单</el-button>
+            </div>
+            <div v-else-if="paginator.ErpStatus === 'pending'">
+              <!-- TODO -->
+              <!-- 配货btn -->
+              <el-button size="mini" type="warning" @click="dealWithOrder">配货</el-button>
+            </div>
+            <div v-else-if="paginator.ErpStatus === 'shiped'">
+              <!-- TODO -->
+            </div>
+            <div v-else>
+              <!-- TODO -->
+            </div>
+            <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条订单信息</span>
           </div>
-          <div v-if="paginator.ErpStatus === 'all'">
-            <!-- TODO -->
-            <!-- 同步订单btn -->
-            <el-button size="small" type="warning" @click="putAliOrder">同步订单</el-button>
-          </div>
-          <div v-else-if="paginator.ErpStatus === 'pending'">
-            <!-- TODO -->
-            <!-- 配货btn -->
-            <el-button size="small" type="warning" @click="1">配货</el-button>
-          </div>
-          <div v-else-if="paginator.ErpStatus === 'shiped'">
-            <!-- TODO -->
-          </div>
-          <div v-else>
-            <!-- TODO -->
+          <div class="content__btns__group">
+            <el-button v-if="paginator.ErpStatus === 'pending'" size="mini" type="warning" @click="1">订单拣货</el-button>
           </div>
         </div>
       </div>
@@ -121,18 +128,12 @@
                     <el-tag v-if="subScope.row.ErpStatus === 'pending'" size="mini" type="info">未处理</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'get'" size="mini" type="success">已拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" size="mini" type="success">现货</el-tag>
-                    <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="danger">待拿货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="warning">待拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
                   </template>
                 </el-table-column>
                 <!-- 子表操作框 -->
-                <el-table-column align="center" width="180">
-                  <!-- <template slot-scope="subScope">
-                    <a v-show="deleteOrderDetailsBtnId === subScope.row.Id" type="primary" size="small" @click="handleDeleteOrderDetails(subScope.row.Id)">
-                      删除
-                    </a>
-                  </template> -->
-                </el-table-column>
+                <el-table-column align="center" width="180" />
               </el-table>
             </template>
           </el-table-column>
@@ -155,16 +156,18 @@
           </el-table-column>
           <el-table-column :formatter="tableFormatter" label="买家留言" prop="BuyerRemake" align="center" />
           <el-table-column :formatter="tableFormatter" label="备注" prop="Remark" align="center" />
+          <!-- 主表订单状态， 只读 -->
           <el-table-column key="OrderStatus" label="平台状态" align="center" width="97">
             <template slot-scope="scope">
-              <el-tag v-if="scope.row.OrderStatus === 'success'" type="success" size="mini" effect="dark">已完成</el-tag>
-              <el-tag v-if="scope.row.OrderStatus === 'waitsellersend'" size="mini" effect="dark">待发货</el-tag>
-              <el-tag v-if="scope.row.OrderStatus === 'waitbuyerreceive'" type="warning" size="mini" effect="dark">待收货</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'success'" type="success" color="#008158" style="color:#ffffff" size="mini" effect="dark">已完成</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'waitsellersend'" size="mini" color="#e8811a" style="color:#ffffff" effect="dark">待发货</el-tag>
+              <el-tag v-if="scope.row.OrderStatus === 'waitbuyerreceive'" type="warning" color="#0d5499" style="color:#ffffff" size="mini" effect="dark">待收货</el-tag>
             </template>
           </el-table-column>
           <!-- 主表仓库状态 -->
           <el-table-column key="ErpStatus" label="仓库状态" prop="ErpStatus" align="center" width="97">
             <template slot-scope="scope">
+              <el-tag v-if="scope.row.ErpStatus === 'forPickup'" type="info" color="#c95732" size="mini" style="color:#ffffff" effect="plain">拿货中</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
@@ -176,7 +179,7 @@
               <DropdownButton
                 :items="[
                   // { name: 'submit', type: 'submit', show: ['uncommit', 'verify_fail'] },
-                  { name: '详情', type: 'detail', if: true },
+                  { name: '详情', type: 'detail', loading: scope.row.Id === detailBtnLoading, if: true },
                   // { name: '添加', type: 'add', if: ['all', 'shiped', 'refund'].indexOf(paginator.ErpStatus) === -1 },
                   { name: '删除', type: 'delete', if: true }
                 ]"
@@ -242,6 +245,7 @@
         <el-button type="primary" @click="newOrderDetalisSubmit">确 定</el-button>
       </div>
     </el-dialog>
+    <DialogOrderDetail ref="dialogOrderDetail" />
   </div>
 </template>
 
@@ -252,18 +256,23 @@ import {
   deleteOrder,
   getSpuInfoBySectionID,
   addErpOrderDetails,
-  pullAliOrderList
+  pullAliOrderList,
+  pullAliOrderDetail
 } from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
+import DialogOrderDetail from '@/views/components/DialogOrderDetail'
 
 export default {
   components: {
-    DropdownButton
+    DropdownButton,
+    DialogOrderDetail
   },
   data() {
     return {
       dialogAddOrderDetalisVisible: false,
+      dialogViewOrderDetalisVisible: false,
+      detailBtnLoading: null,
       tableLoading: false,
       tableData: [],
       pickerDate: '',
@@ -282,14 +291,21 @@ export default {
       paginator: {
         Date: '',
         offset: 0,
-        limit: 20,
+        limit: 50,
         OrderNum: '',
+        // ErpStatusList: ["pending", "forPickup"],
         ErpStatus: 'pending'
       },
       selectList: [],
-      paginatorInfo: {},
+      paginatorInfo: {}, // 分页信息
       tableHeight: '',
-      skuInfo: {}
+      skuInfo: {},
+      orderDetailInfo: { // 商品详情信息
+        address: '',
+        areaCode: '',
+        contactPerson: '',
+        mobile: ''
+      }
     }
   },
   created() {
@@ -310,6 +326,18 @@ export default {
         })
         .catch(err => {
           console.log(err)
+        })
+    },
+    getOrderDetail(orderIDList) {
+      const params = '[' + orderIDList.join(',') + ']'
+      pullAliOrderDetail(params)
+        .then(res => {
+          if (res.success) {
+            this.$refs.dialogOrderDetail.open(res.data)
+          }
+        })
+        .finally(() => {
+          this.detailBtnLoading = null
         })
     },
     tableLoadingMode(sign) {
@@ -345,13 +373,18 @@ export default {
     },
     // 配货
     dealWithOrder() {
+      this.tableLoadingMode(true)
       const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
       toGetGoodsList(orderList)
         .then(res => {
-          console.log(res)
+          this.$message.success('配货成功！等待拿货')
+          this.getList()
         })
         .catch(err => {
           console.log(err)
+        })
+        .finally(() => {
+          this.tableLoadingMode(false)
         })
     },
     handleSelectionChange(list) {
@@ -414,15 +447,29 @@ export default {
       }
       return res ? '-' : cellValue
     },
+    handleDeleteOrder(id) {
+      this.$confirm('此操作将删除该订单, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteOrder(id).then(res => {
+          if (res.success) {
+            this.$message.success('删除成功!')
+            this.getList()
+          }
+        })
+      })
+    },
     // 点击tab页
     handleTab() {
       this.getList()
     },
     handleCommand({ type, data }) {
-      console.log(type, data)
       switch (type) {
         case 'detail':
-          console.log('弹出详情框')
+          this.detailBtnLoading = data.Id
+          this.getOrderDetail([data.Id])
           break
         case 'add':
           this.addOrderDetails(data.Id)
@@ -485,10 +532,37 @@ export default {
     min-height: calc(100vh - 200px);
     .box-tools {
       margin-bottom: 20px;
-      .content__btns {
+      .order_content__btns {
         display: inline-flex;
+        width: 100%;
         >div button {
           margin-left: 8px;
+        }
+        .total-tip {
+          margin-left: 10px;
+          line-height: 28px;
+          font-size: 14px;
+        }
+        // 结果条数
+        .content__btns__result {
+          flex: 1;
+          font-size: 12px;
+          line-height: 32px;
+          div {
+            display: inline;
+          }
+          .el-button+span {
+            margin-left: 5px;
+          }
+          .el-button+.el-button {
+            margin-left: 5px;
+          }
+        }
+        .content__btns__group {
+          line-height: 30px;
+          .el-button+.el-button {
+            margin-left: 5px;
+          }
         }
       }
     }
