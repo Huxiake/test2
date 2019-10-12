@@ -87,27 +87,47 @@ export const constantRoutes = [
         name: 'other',
         component: () => import('@/views/order/otherOrder'),
         meta: { title: '自建订单', icon: 'qita' }
-      },
-      {
-        path: 'pending',
-        name: 'pending',
-        component: () => import('@/views/order/pending'),
-        meta: { title: '待处理', icon: 'pending' }
-      },
-      {
-        path: 'fulfilled',
-        name: 'fulfilled',
-        component: () => import('@/views/order/fulfilled'),
-        meta: { title: '已配货', icon: 'fulfilled' }
-      },
-      {
-        path: 'completed',
-        name: 'completed',
-        component: () => import('@/views/order/completed'),
-        meta: { title: '已完成', icon: 'completed' }
       }
+      // {
+      //   path: 'pending',
+      //   name: 'pending',
+      //   component: () => import('@/views/order/pending'),
+      //   meta: { title: '待处理', icon: 'pending' }
+      // },
+      // {
+      //   path: 'fulfilled',
+      //   name: 'fulfilled',
+      //   component: () => import('@/views/order/fulfilled'),
+      //   meta: { title: '已配货', icon: 'fulfilled' }
+      // },
+      // {
+      //   path: 'completed',
+      //   name: 'completed',
+      //   component: () => import('@/views/order/completed'),
+      //   meta: { title: '已完成', icon: 'completed' }
+      // }
     ]
   },
+
+  // {
+  //   path: '/pickup',
+  //   component: Layout,
+  //   meta: { title: '发货管理', icon: 'dingdan' },
+  //   children: [
+  //     {
+  //       path: 'ali',
+  //       name: 'ali',
+  //       component: () => import('@/views/order/aliOrder'),
+  //       meta: { title: '未拣货', icon: 'ali' }
+  //     },
+  //     {
+  //       path: 'other',
+  //       name: 'other',
+  //       component: () => import('@/views/order/temporder'),
+  //       meta: { title: '已拣货', icon: 'qita' }
+  //     }
+  //   ]
+  // },
 
   {
     path: '/goods',

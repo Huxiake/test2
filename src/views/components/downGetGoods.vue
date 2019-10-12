@@ -5,10 +5,13 @@
         <div class="tabLeft">
           <div style="width:100%;height:20%;font-size:44px;font-weight:bold;margin-left:22px;">{{ item.ErpSku.ErpSpu.SectionNum }}&nbsp;<span style="font-size:40px;font-weight:100">{{ item.ErpSku.Size.replace('码', '') }}</span></div>
           <div style="display:table-cell;width:207px;height:126px;font-size:32px;text-align:center;vertical-align:middle">{{ item.ErpSku.Color }}</div>
-          <div style="width:100%;height:40%;font-size:30px;font-weight:bold;margin-top:8px;margin-left:22px;">{{ item.GetGoodsNum.replace(/\#+/g, `&#10;`).replace(/\*/g, `&nbsp;&nbsp;`) }}</div>
+          <div style="width:100%;height:40%;font-size:37px;font-weight:bold;margin-top:8px;margin-left:22px;">{{ item.GetGoodsNum.replace(/\#+/g, `&#10;`).replace(/\*/g, `&nbsp;&nbsp;`) }}</div>
         </div>
         <div class="tabRight">
           <div :id="'qrDom' + i" />
+          <span style="float:right;font-weight:bold;font-size:41px;">
+            {{ item.DailyNum }}
+          </span>
         </div>
         <div v-if="Math.ceil(i%2) === 0" style="height:328.8px;width:34.01px;float:right" />
       </div>
@@ -49,15 +52,16 @@ export default {
           if (res.success) {
             const data = res.data.rows
             const temp_data = []
-            let mlCount = 0
+            // let mlCount = 0
             Object.assign(temp_data, data)
             for (let i = 0; i < data.length; i++) {
               // const getAmount = Number(data[i].Amount) - Number(data[i].PutInAmount)
               const getAmount = Number(data[i].Amount)
               if (getAmount > 1) {
                 for (let j = 0; j < getAmount - 1; j++) {
-                  mlCount++
-                  temp_data.splice(i + j + mlCount, 0, data[i])
+                  temp_data.splice(temp_data.indexOf(data[i]), 0, data[i])
+                //   mlCount++
+                //   temp_data.splice(i + j + mlCount, 0, data[i])
                 }
               }
             }
@@ -77,9 +81,9 @@ export default {
       console.log(skuLen)
       for (let i = 0; i < skuLen; i++) {
         new QRCode('qrDom' + i, {
-          width: 310,
-          height: 310,
-          text: `{"SectionNum":"${this.pagedata[i].ErpSku.ErpSpu.SectionNum}","sc":"${this.pagedata[i].ErpSku.Color}","sz":"${this.pagedata[i].ErpSku.Size}","SkuId":"${this.pagedata[i].ErpSku.Id}","gid":"${this.pagedata[i].Id}"}`
+          width: 270,
+          height: 270,
+          text: `{"sNum":"${this.pagedata[i].ErpSku.ErpSpu.SectionNum}","SkuId":"${this.pagedata[i].ErpSku.Id}","gid":"${this.pagedata[i].Id}"}`
         })
       }
     }
@@ -89,7 +93,7 @@ export default {
 
 <style lang="scss" scoped>
   .tabLeft {
-    width: 208px;
+    width: 248px;
     height: 310px;
     margin:5px;
     float:left;
@@ -98,7 +102,8 @@ export default {
     }
   }
   .tabRight {
-      width: 310px;
+      width: 270px;
+      height: 310px;
       margin:5px;
       float:left;
   }

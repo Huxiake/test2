@@ -28,7 +28,7 @@
             <el-button type="primary" size="mini" @click="handleScaningEnter">入库</el-button>
             <el-button type="warning" size="mini" @click="handleScaningOut">出库</el-button>
             <el-button type="primary" size="mini" @click="toPrint">打印标签</el-button>
-            <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条订单信息</span>
+            <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条商品信息</span>
           </div>
           <div class="content__btns__group">
             <el-button size="mini" type="primary" style="font-size:12px;" @click="handleSpuAdd">新增</el-button>

@@ -50,10 +50,19 @@
             <div v-else-if="paginator.ErpStatus === 'pending'">
               <!-- TODO -->
               <!-- 配货btn -->
-              <el-button size="mini" type="warning" @click="dealWithOrder">配货</el-button>
+              <div v-if="pendingStatus === 'pending'">
+                <el-button size="mini" type="warning" @click="dealWithOrder">配货</el-button>
+              </div>
+              <div v-else-if="pendingStatus === 'fulfilled'">
+                <el-button size="mini" type="warning" @click="pickupOrder">订单拣货</el-button>
+              </div>
+              <div v-else>
+                <el-button size="mini" type="warning" @click="confirmSend">确认发货</el-button>
+              </div>
             </div>
             <div v-else-if="paginator.ErpStatus === 'shiped'">
               <!-- TODO -->
+              <el-button size="mini" type="warning" @click="handleOrderPending(selectList)">移至未发货</el-button>
             </div>
             <div v-else>
               <!-- TODO -->
@@ -61,11 +70,16 @@
             <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条订单信息</span>
           </div>
           <div class="content__btns__group">
-            <el-button v-if="paginator.ErpStatus === 'pending'" size="mini" type="warning" @click="1">订单拣货</el-button>
+            <!-- <el-button v-if="paginator.ErpStatus === 'pending'" size="mini" type="warning" @click="1">订单拣货</el-button> -->
           </div>
         </div>
       </div>
       <div class="box-table">
+        <el-tabs v-if="paginator.ErpStatus === 'pending'" v-model="pendingStatus" type="card" class="op-card" @tab-click="handleSubTab">
+          <el-tab-pane size="mini" label="待配货" name="pending" />
+          <el-tab-pane size="mini" label="已配货" name="fulfilled" />
+          <el-tab-pane size="mini" label="待确认" name="waitforconfirmation" />
+        </el-tabs>
         <!-- 主表 -->
         <el-table
           v-loading="tableLoading"
@@ -127,6 +141,7 @@
                   <template slot-scope="subScope">
                     <el-tag v-if="subScope.row.ErpStatus === 'pending'" size="mini" type="info">未处理</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'get'" size="mini" type="success">已拿货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'picked'" size="mini" type="success">已拣货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" size="mini" type="success">现货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="warning">待拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
@@ -168,7 +183,9 @@
           <el-table-column key="ErpStatus" label="仓库状态" prop="ErpStatus" align="center" width="97">
             <template slot-scope="scope">
               <el-tag v-if="scope.row.ErpStatus === 'forPickup'" type="info" color="#c95732" size="mini" style="color:#ffffff" effect="plain">拿货中</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未发货</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'fulfilled'" type="info" color="#67c23a" size="mini" style="color:#ffffff" effect="plain">已配货</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'waitforconfirmation'" type="info" color="#67c23a" size="mini" style="color:#ffffff" effect="plain">待确认</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未处理</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
             </template>
@@ -181,7 +198,8 @@
                   // { name: 'submit', type: 'submit', show: ['uncommit', 'verify_fail'] },
                   { name: '详情', type: 'detail', loading: scope.row.Id === detailBtnLoading, if: true },
                   // { name: '添加', type: 'add', if: ['all', 'shiped', 'refund'].indexOf(paginator.ErpStatus) === -1 },
-                  { name: '删除', type: 'delete', if: true }
+                  { name: '移至未发货', type: 'pending', if: paginator.ErpStatus === 'shiped' },
+                  { name: '删除', type: 'delete', if: true },
                 ]"
                 :data="scope"
                 @command="handleCommand"
@@ -245,7 +263,14 @@
         <el-button type="primary" @click="newOrderDetalisSubmit">确 定</el-button>
       </div>
     </el-dialog>
-    <DialogOrderDetail ref="dialogOrderDetail" />
+    <DialogOrderDetail ref="dialogOrderDetail" @submit="nextOrderPickup" />
+    <!-- 扫码枪拣货dialog -->
+    <el-dialog v-loading="dialogOrderPickupLoading" title="订单拣货" :visible.sync="dialogOrderPickupVisible">
+      <el-input ref="scanInput" v-model="currentPickupOrderCurierNum" autofocus placeholder="扫码枪输入" style="margin-bottom: 8px;" @keyup.enter.native="getPickupOrderDetail" @blur="getFocus" />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogOrderPickupVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -257,7 +282,10 @@ import {
   getSpuInfoBySectionID,
   addErpOrderDetails,
   pullAliOrderList,
-  pullAliOrderDetail
+  pullAliOrderDetail,
+  getOrderDetailByCourierNum,
+  markCompleted,
+  signOrderPending
 } from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
@@ -271,7 +299,8 @@ export default {
   data() {
     return {
       dialogAddOrderDetalisVisible: false,
-      dialogViewOrderDetalisVisible: false,
+      dialogOrderPickupVisible: false,
+      dialogOrderPickupLoading: false,
       detailBtnLoading: null,
       tableLoading: false,
       tableData: [],
@@ -293,9 +322,11 @@ export default {
         offset: 0,
         limit: 50,
         OrderNum: '',
-        // ErpStatusList: ["pending", "forPickup"],
-        ErpStatus: 'pending'
+        // ErpStatusList: ["pending", "fulfilled"],
+        ErpStatus: 'pending',
+        Belong: 0
       },
+      pendingStatus: 'pending',
       selectList: [],
       paginatorInfo: {}, // 分页信息
       tableHeight: '',
@@ -305,7 +336,8 @@ export default {
         areaCode: '',
         contactPerson: '',
         mobile: ''
-      }
+      },
+      currentPickupOrderCurierNum: ''
     }
   },
   created() {
@@ -319,8 +351,18 @@ export default {
       orderList(searchAttrs)
         .then(res => {
           if (res.success) {
-            this.tableData = res.data.rows
             this.paginatorInfo = res.data.paginator
+            if (this.paginator.ErpStatus === 'pending') {
+              this.tableData = res.data.rows ? res.data.rows.filter(item => {
+                if (this.pendingStatus === 'pending') {
+                  return ['pending', 'forPickup'].indexOf(item.ErpStatus) !== -1
+                }
+                return item.ErpStatus === this.pendingStatus
+              }) : []
+              this.paginatorInfo.totalCount = this.tableData.length
+            } else {
+              this.tableData = res.data.rows
+            }
             this.tableLoadingMode(false)
           }
         })
@@ -333,7 +375,7 @@ export default {
       pullAliOrderDetail(params)
         .then(res => {
           if (res.success) {
-            this.$refs.dialogOrderDetail.open(res.data)
+            this.$refs.dialogOrderDetail.open(res.data, 'view')
           }
         })
         .finally(() => {
@@ -386,6 +428,61 @@ export default {
         .finally(() => {
           this.tableLoadingMode(false)
         })
+    },
+    // 订单拣货
+    pickupOrder() {
+      this.dialogOrderPickupVisible = true
+      this.getFocus()
+    },
+    confirmSend() {
+      this.tableLoadingMode(true)
+      const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
+      markCompleted(orderList)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('确认成功!')
+            this.getList()
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
+        .finally(() => {
+          this.tableLoadingMode(false)
+        })
+    },
+    // 获取当前拣货订单详情
+    getPickupOrderDetail() {
+      this.dialogOrderPickupLoading = true
+      // 根据订单号获取订单详情
+      getOrderDetailByCourierNum(this.currentPickupOrderCurierNum)
+        .then(res => {
+          if (res.success) {
+            this.$refs.dialogOrderDetail.open(res.data, 'pickup')
+            this.currentPickupOrderCurierNum = ''
+            this.dialogOrderPickupVisible = false
+          } else {
+            this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
+          }
+        })
+        .catch(e => {
+          if (e === '<QuerySeter> no row found') {
+            this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
+          }
+        })
+        .finally(() => {
+          this.dialogOrderPickupLoading = false
+        })
+    },
+    getFocus() {
+      this.$nextTick(() => {
+        this.$refs.scanInput.$el.children[0].focus()
+      })
+    },
+    nextOrderPickup(type) {
+      console.log(type)
+      this.getList()
+      if (type === 'pickup') this.dialogOrderPickupVisible = true
     },
     handleSelectionChange(list) {
       const selectList_temp = []
@@ -447,6 +544,21 @@ export default {
       }
       return res ? '-' : cellValue
     },
+    handleOrderPending(orderList) {
+      this.tableLoadingMode(true)
+      console.log(orderList)
+      const params = '[' + orderList.join(',') + ']'
+      signOrderPending(params)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功!')
+            this.getList()
+          }
+        })
+        .finally(() => {
+          this.tableLoadingMode(false)
+        })
+    },
     handleDeleteOrder(id) {
       this.$confirm('此操作将删除该订单, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -465,14 +577,17 @@ export default {
     handleTab() {
       this.getList()
     },
+    handleSubTab() {
+      this.getList()
+    },
     handleCommand({ type, data }) {
       switch (type) {
         case 'detail':
           this.detailBtnLoading = data.Id
           this.getOrderDetail([data.Id])
           break
-        case 'add':
-          this.addOrderDetails(data.Id)
+        case 'pending':
+          this.handleOrderPending([data.Id])
           break
         case 'delete':
           this.handleDeleteOrder(data.Id)

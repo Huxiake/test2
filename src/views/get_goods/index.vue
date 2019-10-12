@@ -36,7 +36,7 @@
           stripe
           @selection-change="handleSelectionChange"
         >
-          <el-table-column type="selection" width="40" />
+          <el-table-column type="selection" width="45" />
           <el-table-column label="缩略图" align="center" width="100">
             <template slot-scope="scope">
               <el-popover
@@ -96,9 +96,9 @@
           <el-table-column label="备注" prop="Remark" align="center" />
           <el-table-column label="状态" align="center">
             <template slot-scope="scope">
-              <el-tag v-if="scope.row.IsLack === 0 && scope.row.IsGet === 0" type="info">待拿货</el-tag>
-              <el-tag v-if="scope.row.IsLack === 1" type="danger">缺货</el-tag>
-              <el-tag v-if="scope.row.IsGet === 1" type="success">已拿货</el-tag>
+              <el-tag v-if="scope.row.IsLack === 0 && scope.row.IsGet === 0" size="mini" type="info">待拿货</el-tag>
+              <el-tag v-if="scope.row.IsLack === 1" size="mini" type="danger">缺货</el-tag>
+              <el-tag v-if="scope.row.IsGet === 1" size="mini" type="success">已拿货</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" prop="" align="center" width="138">
@@ -113,7 +113,7 @@
         </el-table>
         <el-pagination
           :current-page="paginatorInfo.currentPage"
-          :page-sizes="[10, 50, 100, 200, 300, 400, 500]"
+          :page-sizes="[50, 100, 200, 300, 400, 500]"
           :page-size="paginator.limit"
           :total="paginatorInfo.totalCount"
           layout="total, sizes, prev, pager, next, jumper"
@@ -125,28 +125,6 @@
         />
       </div>
     </el-card>
-    <!-- 扫码入库dialog -->
-    <!-- <el-dialog title="扫码入库" :visible.sync="dialogScanfVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
-      <el-input ref="scanInput" v-model="goodsInfo" autofocus placeholder="扫码枪输入" @keyup.enter.native="addGoods" @blur="getFocus" />
-      <el-card v-loading="scanfLoading" element-loading-text="入库中" style="margin-top:10px;">
-        <el-tag
-          v-for="(item, i) in scanfSkuList"
-          :key="i"
-          :type="Number(item.am) > 1 ? 'primary' : 'info'"
-          closable
-          style="margin: 5px"
-          @close="handleClose(item)"
-        >
-          <el-badge :value="item.am" class="item">
-            {{ item.onum + ' / ' + item.sn }}
-          </el-badge>
-        </el-tag>
-      </el-card>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="cancelScanf">取 消</el-button>
-        <el-button type="primary" @click="emitScanf">确 定</el-button>
-      </div>
-    </el-dialog> -->
     <!-- 临时打印dialog -->
     <el-dialog title="临时打印" :visible.sync="dialogTempPrintVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
       <el-input v-model="tempGoodsInfo" type="textarea" autofocus placeholder="按行输入,每行一个拿货信息" autosize />
@@ -170,7 +148,7 @@ export default {
       tableData: [],
       paginator: {
         offset: 0,
-        limit: 20,
+        limit: 50,
         OrderNum: '',
         GoodsStatus: 'Pending'
       },

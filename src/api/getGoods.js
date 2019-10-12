@@ -24,6 +24,14 @@ export function markRead(params) {
   })
 }
 
+// 处理拿货反馈
+export function dealFeedback(params) {
+  return request({
+    url: '/getgoods/dealFeedback?' + params,
+    method: 'post'
+  })
+}
+
 // 编辑拿货表
 export function editGetGoodsInfo(params) {
   return request({

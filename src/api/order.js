@@ -25,6 +25,14 @@ export function markWaiting(params) {
 }
 
 // order标记完成拣货
+export function markPicked(params) {
+  return request({
+    url: '/order/markPicked?' + params,
+    method: 'post'
+  })
+}
+
+// order标记确认发货
 export function markCompleted(params) {
   return request({
     url: '/order/markCompleted?' + params,
@@ -67,7 +75,7 @@ export function deleteOrder(id) {
   })
 }
 
-// 删除订单
+// 删除订单详情
 export function deleteOrderDetails(id) {
   return request({
     url: '/order/deleteOrderDetails?id=' + id,
@@ -104,5 +112,29 @@ export function getSpuInfoBySectionID(sectionID) {
   return request({
     url: '/order/getSpuInfoBySectionID?SectionID=' + sectionID,
     method: 'get'
+  })
+}
+
+// 根据快递单号获取订单详情
+export function getOrderDetailByCourierNum(courierNum) {
+  return request({
+    url: '/order/getOrderDetailByCourierNum?CourierNum=' + courierNum,
+    method: 'get'
+  })
+}
+
+// 设置订单详情状态
+export function markOrderDetailStatus(id, orderID, status, amount) {
+  return request({
+    url: '/order/markOrderDetailStatus?orderDetailID=' + id + '&status=' + status + '&amount=' + amount + '&orderID=' + orderID,
+    method: 'post'
+  })
+}
+
+// 标记订单重拿状态
+export function signOrderPending(params) {
+  return request({
+    url: '/order/signOrderPending?OrderList=' + params,
+    method: 'post'
   })
 }

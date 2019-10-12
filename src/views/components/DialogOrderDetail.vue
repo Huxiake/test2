@@ -47,8 +47,26 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="标注" />
-      <el-table-column label="操作" />
+      <el-table-column label="状态">
+        <template slot-scope="scope">
+          <el-tag v-if="pickedList.indexOf(scope.row.Id) !== -1" type="success" size="small">已拣货</el-tag>
+          <el-tag v-if="getAgainList.indexOf(scope.row.Id) !== -1" type="warning" size="small">重拿</el-tag>
+          <el-tag v-if="ignoreList.indexOf(scope.row.Id) !== -1" type="danger" size="small">搁置</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="200">
+        <template slot-scope="scope">
+          <DropdownButton
+            :items="[
+              { name: '已拣货', type: 'picked', if: true },
+              { name: '重拿', type: 'getAgain', if: true },
+              { name: '搁置', type: 'ignore', if: true }
+            ]"
+            :data="scope"
+            @command="handleCommand"
+          />
+        </template>
+      </el-table-column>
     </el-table>
     <!-- <el-form label-position="right" label-width="100px">
       <el-form-item>
@@ -58,24 +76,38 @@
         <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionID" />
       </el-form-item>
     </el-form> -->
+    <!-- <el-tabs type="border-card" class="op-card">
+      <el-tab-pane label="仓库操作">
+        <el-button size="mini">发货</el-button>
+      </el-tab-pane>
+    </el-tabs> -->
     <div slot="footer" class="dialog-footer">
       <el-button @click="close">
-        取 消
+        关闭
       </el-button>
-      <el-button type="primary" @click="save">
-        确 定
+      <el-button v-if="(type === 'pickup' || orderDetail.orders[0].ErpStatus === 'fulfilled')" :disabled="getAgainList.length > 0" type="primary" @click="save">
+        完成拣货
       </el-button>
     </div>
   </el-dialog>
 </template>
 
 <script>
+import {
+  markOrderDetailStatus,
+  markPicked
+} from '@/api/order'
+import DropdownButton from '@/views/components/DropdownButton'
+
 export default {
   name: 'DialogOrderDetail',
+  components: {
+    DropdownButton
+  },
   data() {
     return {
       visible: false,
-      type: false,
+      type: 'view',
       orderDetail: {
         orderDetail: {
           address: '',
@@ -89,26 +121,57 @@ export default {
             ErpOrderDetails: ''
           }
         ]
-      }
+      },
+      pickedList: [],
+      getAgainList: [],
+      ignoreList: []
     }
   },
   methods: {
     open(data = {}, type) {
-      // this.type = type;
-      console.log(data)
+      this.type = type
       this.orderDetail = data
       this.visible = true
+      console.log(type)
     },
     save() {
       this.visible = false
-      // if (!this.editData.reply) {
-      //   this.$message.error('请输入评价解释')
-      //   return;
-      // }
-      // this.$emit('submit', this.editData)
+      markPicked('OrderList=[' + this.orderDetail.orders[0].Id + ']')
+        .then(res => {
+          console.log(res)
+        })
+      this.$emit('submit', this.type)
     },
     close() {
       this.visible = false
+    },
+    handleCommand({ type, data }) {
+      switch (type) {
+        case 'picked':
+          this.pickedList.push(data.Id)
+          this.getAgainList.splice(this.getAgainList.indexOf(data.Id), 1)
+          this.ignoreList.splice(this.ignoreList.indexOf(data.Id), 1)
+          break
+        case 'getAgain':
+          // 拿货列表重新生成拿货单
+          // 订单详情状态设置为 待拿货 forPickup
+          // 隐藏完成拣货的按钮
+          // this.handleDeleteOrder(data.Id)
+          markOrderDetailStatus(data.Id, data.ErpOrder.Id, 'forPickup', data.Amount)
+            .then(res => {
+              if (res.success) {
+                this.$message.success('操作成功')
+                this.pickedList.splice(this.pickedList.indexOf(data.Id), 1)
+                this.getAgainList.push(data.Id)
+                this.ignoreList.splice(this.ignoreList.indexOf(data.Id), 1)
+              }
+            })
+          break
+        case 'ignore':
+          // 订单详情的状态设置未 ignore
+          this.addOrderDetails(data.Id)
+          break
+      }
     }
   }
 }
@@ -128,5 +191,8 @@ export default {
   .goodsInfo-right {
     width: 174px;
     float: left;
+  }
+  .op-card {
+    margin-top: 20px;
   }
 </style>

@@ -147,7 +147,6 @@ export default {
             for (let i = 0; i < dataLen; i++) {
               this.feedbackIdList.push(this.tableData[i].Id)
             }
-            console.log(this.feedbackIdList)
             this.markRead()
           }
         })
