@@ -5,13 +5,14 @@
         <span>拿货列表</span>
       </div>
       <div class="box-tools">
-        <el-row :gutter="8" type="flex" justify="right">
+        <el-row :gutter="4" type="flex" justify="right">
           <el-col :span="17">
-            <el-button type="primary" size="small" @click="toPrint">打印</el-button>
-            <el-button type="warning" size="small" @click="tempPrint">临时打印</el-button>
+            <el-button type="primary" size="mini" @click="toPrint">打印</el-button>
+            <el-button type="warning" size="mini" @click="tempPrint">临时打印</el-button>
+            <el-button type="success" size="mini" @click="toGet(selectList)">完成</el-button>
           </el-col>
           <el-col :span="2">
-            <el-select v-model="paginator.GoodsStatus" size="small" placeholder="拿货状态">
+            <el-select v-model="paginator.GoodsStatus" size="mini" placeholder="拿货状态">
               <el-option label="全部" value="" />
               <el-option label="待拿货" value="Pending" />
               <el-option label="已拿货" value="Get" />
@@ -21,12 +22,12 @@
           <el-col :span="4">
             <el-input
               v-model="paginator.OrderNum"
-              size="small"
+              size="mini"
               placeholder="输入订单号可查询"
             />
           </el-col>
           <el-col :span="1.5">
-            <el-button type="primary" size="small" @click="getList">查询</el-button>
+            <el-button type="primary" size="mini" @click="getList">查询</el-button>
           </el-col>
         </el-row>
       </div>
@@ -106,8 +107,17 @@
               <!-- <el-link :underline="false" @click="handleEditGetGoodsInfo(scope.row)">编辑</el-link> -->
               <a v-if="scope.row.Id === editSkuInfo.Id" style="color:#409eff" @click="handleSkuSave()">保存<br></a>
               <a v-if="scope.row.Id === editSkuInfo.Id" @click="cancelEditSku">取消</a>
-              <a v-else style="color:#409eff" @click="handleEditGetGoodsInfo(scope.row)">编辑<br></a>
-              <!-- <el-link v-if="scope.row.Id !== editSkuInfo.Id" :underline="false" style="color:#f56c6c" @click="handleSkuDelete(scope.row.Id)">删除</el-link> -->
+              <!-- <a v-else style="color:#409eff" @click="handleEditGetGoodsInfo(scope.row)">编辑<br></a> -->
+              <DropdownButton
+                v-else
+                :items="[
+                  { name: '编辑', type: 'edit', if: true },
+                  { name: '完成', type: 'get', if: true },
+                  { name: '搁置', type: 'omit', if: true },
+                ]"
+                :data="scope"
+                @command="handleCommand"
+              />
             </template>
           </el-table-column>
         </el-table>
@@ -137,10 +147,25 @@
 </template>
 
 <script>
-import { getGoodsList, editGetGoodsInfo, getGetGoodsNumListBySpuID, setDefaultGetGoodsNum } from '@/api/getGoods'
+import {
+  getGoodsList,
+  editGetGoodsInfo,
+  getGetGoodsNumListBySpuID,
+  setDefaultGetGoodsNum,
+  markGet
+} from '@/api/getGoods'
+
+import {
+  markOrderDetailStatus
+} from '@/api/order'
+
 import qs from 'qs'
+import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
+  components: {
+    DropdownButton
+  },
   data() {
     return {
       dialogScanfVisible: false,
@@ -180,7 +205,6 @@ export default {
       getGoodsList(searchAttrs)
         .then(res => {
           if (res.success) {
-            console.log(res)
             this.tableData = res.data.rows
             this.paginatorInfo = res.data.paginator
             this.tableLoading = false
@@ -193,7 +217,6 @@ export default {
     handleSelectionChange(list) {
       const selectList_temp = []
       for (const i in list) {
-        console.log(i)
         selectList_temp.push(list[i]['Id'])
       }
       this.selectList = selectList_temp
@@ -219,7 +242,6 @@ export default {
       const goodsInfoStr = this.goodsInfo.replace('?', '').replace('“', '"').replace('”', '"').replace('，', ',').replace('｛', '{').replace('｝', '}').replace('",,', '",')
       const infoDetails = JSON.parse(goodsInfoStr)
       this.goodsInfo = ''
-      console.log(infoDetails)
       this.scanfSkuList.push(infoDetails)
       // 存入请求参数
       const temp_info = {}
@@ -357,6 +379,38 @@ export default {
         }
       })
       window.open(href, '_blank')
+    },
+    toGet(list = []) {
+      const idList = '[' + list.join(',') + ']'
+      markGet(idList)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
+            this.getList()
+          }
+        })
+    },
+    toOmit(data) {
+      markOrderDetailStatus(data.OrderDetails.Id, data.OrderDetails.ErpOrder.Id, 'omit', data.Amount)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
+            this.getList()
+          }
+        })
+    },
+    handleCommand({ type, data }) {
+      switch (type) {
+        case 'edit':
+          this.handleEditGetGoodsInfo(data)
+          break
+        case 'get':
+          this.toGet([data.Id])
+          break
+        case 'omit':
+          this.toOmit(data)
+          break
+      }
     }
   }
 }

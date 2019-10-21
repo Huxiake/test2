@@ -13,8 +13,8 @@
               width="326"
               trigger="hover"
             >
-              <img :src="sectionData.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="width:300px;height:300px;">
-              <img slot="reference" :src="sectionData.Img + '?x-oss-process=image/resize,h_120'" style="width:120px;height:120px;">
+              <img :src="sectionData.Img + '?x-oss-process=image/resize,h_300,limit_0' + ',' + overTime" style="width:300px;height:300px;">
+              <img slot="reference" :src="sectionData.Img + '?x-oss-process=image/resize,h_120' + ',' + overTime" style="width:120px;height:120px;">
             </el-popover>
           </el-col>
           <!-- 款式信息 -->
@@ -109,7 +109,8 @@ export default {
       },
       printVisible: false,
       visible: false,
-      printNum: 0
+      printNum: 0,
+      overTime: (new Date()).valueOf()
     }
   },
   created() {
@@ -128,7 +129,7 @@ export default {
     handleNewSku() {
       const ErpSpu_temp = this.sectionData
       delete ErpSpu_temp.ErpSkus
-      this.editSkuInfo = { Id: '1', ErpSpu: this.sectionData, SectionNum: this.sectionData.SectionNum }
+      this.editSkuInfo = { Id: '1', ErpSpu: this.sectionData, SectionNum: this.sectionData.SectionNum, SectionID: this.sectionData.SectionID }
       this.detailsData.push(this.editSkuInfo)
     },
     handleSkuEdit(item) {

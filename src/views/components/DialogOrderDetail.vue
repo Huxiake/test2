@@ -168,8 +168,16 @@ export default {
             })
           break
         case 'ignore':
-          // 订单详情的状态设置未 ignore
-          this.addOrderDetails(data.Id)
+          // 订单详情的状态设置为 omit
+          markOrderDetailStatus(data.Id, data.ErpOrder.Id, 'omit', data.Amount)
+            .then(res => {
+              if (res.success) {
+                this.$message.success('操作成功')
+                this.pickedList.splice(this.pickedList.indexOf(data.Id), 1)
+                this.getAgainList.splice(this.getAgainList.indexOf(data.Id), 1)
+                this.ignoreList.push(data.Id)
+              }
+            })
           break
       }
     }

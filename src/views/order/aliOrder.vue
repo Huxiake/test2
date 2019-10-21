@@ -145,6 +145,7 @@
                     <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" size="mini" type="success">现货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="warning">待拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'omit'" size="mini" type="danger">已搁置</el-tag>
                   </template>
                 </el-table-column>
                 <!-- 子表操作框 -->
@@ -195,9 +196,7 @@
             <template slot-scope="scope">
               <DropdownButton
                 :items="[
-                  // { name: 'submit', type: 'submit', show: ['uncommit', 'verify_fail'] },
                   { name: '详情', type: 'detail', loading: scope.row.Id === detailBtnLoading, if: true },
-                  // { name: '添加', type: 'add', if: ['all', 'shiped', 'refund'].indexOf(paginator.ErpStatus) === -1 },
                   { name: '移至未发货', type: 'pending', if: paginator.ErpStatus === 'shiped' },
                   { name: '删除', type: 'delete', if: true },
                 ]"

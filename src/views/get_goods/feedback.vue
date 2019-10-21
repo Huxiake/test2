@@ -88,11 +88,25 @@
               <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.Amount }}</div>
             </template>
           </el-table-column>
+          <el-table-column label="备注" align="center">
+            <template slot-scope="scope">
+              <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.Remark }}</div>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" align="center" width="200">
             <template slot-scope="scope">
               <el-button v-if="scope.row.Id === editSkuInfo.Id" type="primary" size="mini" @click="handleSkuSave()">保存</el-button>
               <el-button v-if="scope.row.Id === editSkuInfo.Id" size="mini" @click="cancelSkuSave()">取消</el-button>
-              <el-button v-if="scope.row.Id !== editSkuInfo.Id" type="primary" size="mini" @click="handleSkuEdit(scope.row)">编辑</el-button>
+              <!-- <el-button v-if="scope.row.Id !== editSkuInfo.Id" type="primary" size="mini" @click="handleSkuEdit(scope.row)">编辑</el-button> -->
+              <DropdownButton
+                v-if="scope.row.Id !== editSkuInfo.Id"
+                :items="[
+                  { name: '编辑', type: 'edit', if: true },
+                  { name: '完成', type: 'done', if: true },
+                ]"
+                :data="scope"
+                @command="handleCommand"
+              />
             </template>
           </el-table-column>
         </el-table>
@@ -102,16 +116,27 @@
 </template>
 
 <script>
-import { getFeedback, markRead, dealFeedback, getGetGoodsNumListBySpuID, setDefaultGetGoodsNum } from '@/api/getGoods'
+import {
+  getFeedback,
+  markRead,
+  dealFeedback,
+  doneFeedback,
+  getGetGoodsNumListBySpuID,
+  setDefaultGetGoodsNum
+} from '@/api/getGoods'
 import qs from 'qs'
+import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
+  components: {
+    DropdownButton
+  },
   data() {
     return {
       tableData: [],
       paginator: {
         offset: 0,
-        limit: 20,
+        limit: 200,
         OrderNum: '',
         deal: 0
       },
@@ -253,6 +278,28 @@ export default {
           }
         })
       })
+    },
+    handleDoneFeedback(feedbackId) {
+      doneFeedback(feedbackId)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
+            this.getList()
+          }
+        })
+        .catch(e => {
+          console.log(e)
+        })
+    },
+    handleCommand({ type, data }) {
+      switch (type) {
+        case 'edit':
+          this.handleSkuEdit(data)
+          break
+        case 'done':
+          this.handleDoneFeedback([data.Id])
+          break
+      }
     }
   }
 }

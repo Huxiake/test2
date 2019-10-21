@@ -24,10 +24,26 @@ export function markRead(params) {
   })
 }
 
+// 标记为完成
+export function markGet(params) {
+  return request({
+    url: '/getgoods/markGet?id=' + params,
+    method: 'post'
+  })
+}
+
 // 处理拿货反馈
 export function dealFeedback(params) {
   return request({
     url: '/getgoods/dealFeedback?' + params,
+    method: 'post'
+  })
+}
+
+// 完成拿货反馈
+export function doneFeedback(params) {
+  return request({
+    url: '/getgoods/doneFeedback?FeedbackId=' + params,
     method: 'post'
   })
 }

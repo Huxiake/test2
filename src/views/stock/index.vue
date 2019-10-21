@@ -64,7 +64,7 @@
                 width="326"
                 trigger="hover"
               >
-                <img :src="scope.row.Img + '?x-oss-process=image/resize,h_300,limit_0'" style="margin:0 auto;width:300px;height:300px;">
+                <img :src="scope.row.Img + '?x-oss-process=image/resize,h_300,limit_0' + ',' + overTime" style="margin:0 auto;width:300px;height:300px;">
                 <img slot="reference" :src="scope.row.Img + '?x-oss-process=image/resize,h_58' + ',' + overTime" style="width:58px;height:58px;">
               </el-popover>
             </template>
@@ -108,7 +108,7 @@
             :on-change="handleImgChange"
             :http-request="uploadImgFile"
           >
-            <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar">
+            <img v-if="imageUrl_temp" :src="imageUrl_temp + (imageUrl_temp.indexOf('blob') !== -1 ? '' : '?' + overTime)" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </el-form-item>
@@ -146,7 +146,7 @@
             :on-change="handleImgChange"
             :http-request="uploadImgFile"
           >
-            <img v-if="imageUrl_temp" :src="imageUrl_temp" class="avatar">
+            <img v-if="imageUrl_temp" :src="imageUrl_temp + (imageUrl_temp.indexOf('blob') !== -1 ? '' : '?' + overTime)" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </el-form-item>

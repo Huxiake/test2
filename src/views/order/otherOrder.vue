@@ -118,11 +118,11 @@
                 </el-table-column>
                 <!-- 子表操作框 -->
                 <el-table-column align="center" width="180">
-                  <!-- <template slot-scope="subScope">
-                    <a v-show="deleteOrderDetailsBtnId === subScope.row.Id" type="primary" size="small" @click="handleDeleteOrderDetails(subScope.row.Id)">
+                  <template slot-scope="subScope">
+                    <a v-show="deleteOrderDetailsBtnId === subScope.row.Id && paginator.ErpStatus === 'pending'" type="primary" size="small" @click="handleDeleteOrderDetails(subScope.row.Id)">
                       删除
                     </a>
-                  </template> -->
+                  </template>
                 </el-table-column>
               </el-table>
             </template>
@@ -264,7 +264,8 @@ import {
   getSpuInfoBySectionID,
   addErpOrderDetails,
   addErpOrder,
-  markCompleted
+  markCompleted,
+  deleteOrderDetails
 } from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
@@ -281,11 +282,12 @@ export default {
       tableData: [],
       pickerDate: '',
       newOrderInfo: {},
+      deleteOrderDetailsBtnId: '',
       newOrderDetailsInfo: {
         ErpOrder: {
-          Id: '',
-          OrderNum: '',
+          Id: ''
         },
+        OrderNum: '',
         SectionNum: '',
         SectionID: '',
         Color: '',
@@ -337,6 +339,7 @@ export default {
         ErpOrder: {
           Id: ''
         },
+        OrderNum: '',
         SectionNum: '',
         SectionID: '',
         Color: '',
@@ -392,9 +395,10 @@ export default {
     changeDate() {
       this.paginator.Date = '["' + this.pickerDate.join('","') + '"]'
     },
-    addOrderDetails(orderId) {
+    addOrderDetails(data) {
       this.dialogAddOrderDetalisVisible = true
-      this.newOrderDetailsInfo.ErpOrder.Id = orderId
+      this.newOrderDetailsInfo.ErpOrder.Id = data.Id
+      this.newOrderDetailsInfo.OrderNum = data.OrderNum
     },
     // 分页下一页
     handleCurrentChange(val) {
@@ -438,7 +442,7 @@ export default {
           console.log('弹出详情框')
           break
         case 'add':
-          this.addOrderDetails(data.Id)
+          this.addOrderDetails(data)
           break
         case 'delete':
           this.handleDeleteOrder(data.Id)
@@ -514,6 +518,18 @@ export default {
         }
       }).catch(e => {
         console.log(e)
+      })
+    },
+    handleDeleteOrderDetails(Id) {
+      this.$confirm('此操作将删除该订单详情, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteOrderDetails(Id).then(res => {
+          this.$message.success('删除成功!')
+          this.getList()
+        })
       })
     }
   }
