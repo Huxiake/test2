@@ -188,7 +188,8 @@ export default {
         'GetGoodsNum': '',
         'Remark': '',
         'Price': '',
-        'Amount': ''
+        'Amount': '',
+        'orderDetailID': ''
       },
       getGoodsNumList: [],
       paginatorInfo: {},
@@ -288,6 +289,7 @@ export default {
       this.editSkuInfo.GetGoodsNum = item.ErpSku.ErpSpu.GetGoodsNum
       this.editSkuInfo.Price = item.ErpSku.ErpSpu.Price
       this.editSkuInfo.Remark = item.Remark
+      this.editSkuInfo.orderDetailID = item.OrderDetails.Id
       // 根据item.spuId拉取getGoodsList, 存至getgoodslist
       getGetGoodsNumListBySpuID(item.ErpSku.ErpSpu.Id).then(res => {
         if (res.success) {

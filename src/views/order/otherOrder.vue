@@ -105,7 +105,11 @@
                   </template>
                 </el-table-column>
                 <!-- 子表中间空白 -->
-                <el-table-column key="centerSpace" />
+                <el-table-column key="centerSpace">
+                  <template slot-scope="subScope">
+                    <span>拿货编码:  {{ subScope.row.GetGoodsNum }}</span>
+                  </template>
+                </el-table-column>
                 <!-- 子表状态框 -->
                 <el-table-column key="subErpStatus" align="center" width="100">
                   <template slot-scope="subScope">

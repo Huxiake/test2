@@ -60,7 +60,8 @@
             :items="[
               { name: '已拣货', type: 'picked', if: true },
               { name: '重拿', type: 'getAgain', if: true },
-              { name: '搁置', type: 'ignore', if: true }
+              { name: '搁置', type: 'ignore', if: true },
+              { name: '退货', type: 'return', if: orderDetail.orders[0].ErpStatus === 'success' || orderDetail.orders[0].ErpStatus === 'shiped' },
             ]"
             :data="scope"
             @command="handleCommand"
@@ -132,7 +133,6 @@ export default {
       this.type = type
       this.orderDetail = data
       this.visible = true
-      console.log(type)
     },
     save() {
       this.visible = false
@@ -178,6 +178,10 @@ export default {
                 this.ignoreList.push(data.Id)
               }
             })
+          break
+        case 'return':
+          console.log('退货流程')
+          console.log(data)
           break
       }
     }
