@@ -52,6 +52,7 @@
           <el-tag v-if="pickedList.indexOf(scope.row.Id) !== -1" type="success" size="small">已拣货</el-tag>
           <el-tag v-if="getAgainList.indexOf(scope.row.Id) !== -1" type="warning" size="small">重拿</el-tag>
           <el-tag v-if="ignoreList.indexOf(scope.row.Id) !== -1" type="danger" size="small">搁置</el-tag>
+          <el-tag v-if="refundList.indexOf(scope.row.Id) !== -1" type="danger" size="small">退货</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="200">
@@ -96,7 +97,8 @@
 <script>
 import {
   markOrderDetailStatus,
-  markPicked
+  markPicked,
+  returnGoodsByOrderDetailID
 } from '@/api/order'
 import DropdownButton from '@/views/components/DropdownButton'
 
@@ -125,7 +127,8 @@ export default {
       },
       pickedList: [],
       getAgainList: [],
-      ignoreList: []
+      ignoreList: [],
+      refundList: []
     }
   },
   methods: {
@@ -180,8 +183,17 @@ export default {
             })
           break
         case 'return':
-          console.log('退货流程')
-          console.log(data)
+          returnGoodsByOrderDetailID(data.Id)
+            .then(res => {
+              console.log(res)
+              if (res.success) {
+                this.$message.success('操作成功')
+                this.refundList.push(data.Id)
+              }
+            })
+            .catch(e => {
+              console.log(e)
+            })
           break
       }
     }

@@ -137,7 +137,7 @@
                 <!-- 子表中间空白 -->
                 <el-table-column key="centerSpace">
                   <template slot-scope="subScope">
-                    <span>拿货编码:  {{ subScope.row.GetGoodsNum }}</span>
+                    <span>{{ subScope.row.GetGoodsNum ? '拿货编码:  ' + subScope.row.GetGoodsNum : '' }}</span>
                   </template>
                 </el-table-column>
                 <!-- 子表状态框 -->
@@ -150,6 +150,7 @@
                     <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="warning">待拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'omit'" size="mini" type="danger">已搁置</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'refund'" size="mini" type="danger">退货</el-tag>
                   </template>
                 </el-table-column>
                 <!-- 子表操作框 -->
@@ -193,6 +194,7 @@
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未处理</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'refund'" type="danger" size="mini" effect="plain">有退货</el-tag>
             </template>
           </el-table-column>
           <!-- 主表操作 -->

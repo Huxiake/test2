@@ -118,6 +118,7 @@
                     <el-tag v-if="subScope.row.ErpStatus === 'fulfilled'" size="mini" type="success">现货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'forPickup'" size="mini" type="danger">待拿货</el-tag>
                     <el-tag v-if="subScope.row.ErpStatus === 'lack'" size="mini" type="danger">待处理缺货</el-tag>
+                    <el-tag v-if="subScope.row.ErpStatus === 'refund'" size="mini" type="danger">退货</el-tag>
                   </template>
                 </el-table-column>
                 <!-- 子表操作框 -->
@@ -126,6 +127,10 @@
                     <a v-show="deleteOrderDetailsBtnId === subScope.row.Id && paginator.ErpStatus === 'pending'" type="primary" size="small" @click="handleDeleteOrderDetails(subScope.row.Id)">
                       删除
                     </a>
+                    <a v-show="deleteOrderDetailsBtnId === subScope.row.Id && paginator.ErpStatus === 'completed'" type="primary" size="small" @click="handleReturn(subScope.row.Id)">
+                      退货
+                    </a>
+                    <!-- <a v-if="paginator.ErpStatus === 'completed'" @click="handleReturn(subScope.row.Id)">退货</a> -->
                   </template>
                 </el-table-column>
               </el-table>
@@ -159,6 +164,7 @@
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未处理</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'completed'" type="success" size="mini" effect="plain">已完成</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'refund'" type="danger" size="mini" effect="plain">有退货</el-tag>
             </template>
           </el-table-column>
           <!-- 主表操作 -->
@@ -269,7 +275,8 @@ import {
   addErpOrderDetails,
   addErpOrder,
   markCompleted,
-  deleteOrderDetails
+  deleteOrderDetails,
+  returnGoodsByOrderDetailID
 } from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
@@ -535,6 +542,17 @@ export default {
           this.getList()
         })
       })
+    },
+    handleReturn(id) {
+      returnGoodsByOrderDetailID(id)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
+          }
+        })
+        .catch(e => {
+          console.log(e)
+        })
     }
   }
 }

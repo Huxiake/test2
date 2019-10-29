@@ -138,3 +138,11 @@ export function signOrderPending(params) {
     method: 'post'
   })
 }
+
+// 标记订单重拿状态
+export function returnGoodsByOrderDetailID(params) {
+  return request({
+    url: '/order/returnGoodsByOrderDetailID?OrderDetailID=' + params,
+    method: 'post'
+  })
+}
