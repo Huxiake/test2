@@ -2,7 +2,7 @@
   <!-- 查看订单详情dialog -->
   <el-dialog title="订单详情" :visible.sync="visible">
     <el-alert
-      :title="'姓名：' + orderDetail.orderDetail.contactPerson + '\n手机：' + orderDetail.orderDetail.mobile + '\n邮编：' + orderDetail.orderDetail.areaCode + '\n地址：' + orderDetail.orderDetail.address"
+      :title="'单号：' + orderDetail.orders[0].OrderNum + '\n姓名：' + orderDetail.orderDetail.contactPerson + '\n手机：' + orderDetail.orderDetail.mobile + '\n邮编：' + orderDetail.orderDetail.areaCode + '\n地址：' + orderDetail.orderDetail.address"
       type="info"
       class="baseinfo-alter"
       :closable="false"
