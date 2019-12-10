@@ -1,22 +1,24 @@
 <template>
   <div class="app-container">
-    <el-card class="box-card">
+    <el-card class="search-card">
       <div slot="header" class="clearfix">
         <span>库存管理</span>
       </div>
       <div class="box-tools">
-        <el-row :gutter="8" type="flex" justify="right">
-          <el-col :span="3" :offset="17">
+        <!-- <el-row>
+          <el-col :span="3">
             <el-select v-model="paginator.Stock" :disabled="tableLoading" size="mini" placeholder="库存状态" @change="changeSelect">
               <el-option label="全部" value="" />
               <el-option label="现货" value="1" />
             </el-select>
           </el-col>
+        </el-row> -->
+        <el-row :gutter="8" type="flex" justify="right">
           <el-col :span="4">
             <el-input
               v-model="paginator.SectionNum"
               size="mini"
-              placeholder="请输入款号"
+              placeholder="请输入关键字"
             />
           </el-col>
           <el-col :span="1.5">
@@ -35,66 +37,90 @@
             <el-button size="mini" type="warning" style="font-size:12px;" @click="putAliProduct">同步商品</el-button>
           </div>
         </div>
-        <!-- <el-upload
-          class="upload-demo"
-          action=""
-          style="float:right"
-          :show-file-list="false"
-          :before-upload="beforeXlsUpload"
-          :http-request="uploadXlsFile"
-        >
-          <el-button size="medium" type="warning" style="font-size:12px;">上传</el-button>
-        </el-upload> -->
-      </div>
-      <div class="box-table">
-        <!-- spu列表 -->
-        <el-table
-          v-loading="tableLoading"
-          :data="stockData"
-          :max-height="tableHeight"
-          stripe
-          @row-click="toSectionDetails"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" width="55" />
-          <el-table-column label="缩略图" align="center" width="80">
-            <template slot-scope="scope">
-              <el-popover
-                placement="right-start"
-                width="326"
-                trigger="hover"
-              >
-                <img :src="scope.row.Img + '?x-oss-process=image/resize,h_300,limit_0' + ',' + overTime" style="margin:0 auto;width:300px;height:300px;">
-                <img slot="reference" :src="scope.row.Img + '?x-oss-process=image/resize,h_58' + ',' + overTime" style="width:58px;height:58px;">
-              </el-popover>
-            </template>
-          </el-table-column>
-          <el-table-column label="标题" align="center" prop="Name" />
-          <el-table-column label="款号" align="center" prop="SectionNum" />
-          <el-table-column label="拿货编号" align="center" prop="GetGoodsNum" />
-          <el-table-column label="价格" align="center" prop="Price" />
-          <el-table-column label="备注" align="center" prop="Remark" />
-          <el-table-column label="操作" align="center" width="200">
-            <template slot-scope="scope">
-              <el-button type="primary" size="mini" @click="handleSpuEdit(scope.row.Id)">编辑</el-button>
-              <el-button size="mini" @click="handleSpuDelete(scope.row.Id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-pagination
-          :current-page="paginatorInfo.currentPage + 1"
-          :page-sizes="[50, 100, 200, 300, 400]"
-          :page-size="paginator.limit"
-          :total="paginatorInfo.totalCount"
-          layout="total, sizes, prev, pager, next, jumper"
-          style="margin-top:20px;margin-bottom:20px;float:right"
-          @current-change="handleCurrentChange"
-          @size-change="handleSizeChange"
-          @prev-click="prevPage"
-          @next-click="nextPage"
-        />
       </div>
     </el-card>
+    <el-row :gutter="10">
+      <!-- <el-col :span="3" /> -->
+      <el-col :span="3">
+        <!-- <div style="height: 1px;"/> -->
+        <el-card class="group-card">
+          <div slot="header" class="clearfix">
+            <span>库存分组</span>
+            <i style="float: right;" class="el-icon-plus group-card__add" />
+          </div>
+          <div class="group-card__item">
+            测试分组1
+            <span class="group-card__item__tool">
+              <i class="el-icon-edit" @click.stop="1" />
+              <i class="el-icon-delete" @click.stop="1" />
+            </span>
+          </div>
+          <div class="group-card__item">
+            测试分组2
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="21">
+        <el-card class="table-card">
+          <div class="box-table">
+            <!-- spu列表 -->
+            <el-table
+              v-loading="tableLoading"
+              :data="stockData"
+              :max-height="tableHeight"
+              stripe
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column type="selection" width="55" />
+              <el-table-column label="缩略图" align="center" width="80">
+                <template slot-scope="scope">
+                  <el-popover
+                    placement="right-start"
+                    width="326"
+                    trigger="hover"
+                  >
+                    <img :src="scope.row.Img + '?x-oss-process=image/resize,h_300,limit_0' + ',' + overTime" style="margin:0 auto;width:300px;height:300px;">
+                    <img slot="reference" :src="scope.row.Img + '?x-oss-process=image/resize,h_58' + ',' + overTime" style="width:58px;height:58px;">
+                  </el-popover>
+                </template>
+              </el-table-column>
+              <el-table-column label="标题" align="center" prop="Name" />
+              <el-table-column label="款号" align="center" prop="SectionNum" />
+              <el-table-column label="拿货编号" align="center" prop="GetGoodsNum" />
+              <el-table-column label="价格" align="center" prop="Price" />
+              <el-table-column label="备注" align="center" prop="Remark" />
+              <el-table-column label="操作" align="center" width="200">
+                <template slot-scope="scope">
+                  <DropdownButton
+                    :items="[
+                      { name: '详情', type: 'detail', if: true },
+                      { name: '编辑', type: 'edit', if: true },
+                      { name: '删除', type: 'delete', if: true },
+                    ]"
+                    :data="scope"
+                    @command="handleCommand"
+                  />
+                  <!-- <el-button type="primary" size="mini" @click="handleSpuEdit(scope.row.Id)">编辑</el-button> -->
+                  <!-- <el-button size="mini" @click="handleSpuDelete(scope.row.Id)">删除</el-button> -->
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-pagination
+              :current-page="paginatorInfo.currentPage + 1"
+              :page-sizes="[20, 50, 100, 200, 300, 400]"
+              :page-size="paginator.limit"
+              :total="paginatorInfo.totalCount"
+              layout="total, sizes, prev, pager, next, jumper"
+              style="margin-top:20px;margin-bottom:20px;float:right"
+              @current-change="handleCurrentChange"
+              @size-change="handleSizeChange"
+              @prev-click="prevPage"
+              @next-click="nextPage"
+            />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
     <!-- 编辑spu的dialog -->
     <el-dialog title="编辑款式" :visible.sync="dialogEditVisible">
       <el-form :model="editSpuInfo" label-position="right" label-width="100px">
@@ -177,8 +203,12 @@
 <script>
 import { stockList, uploadSpuXls, uploadSpuPic, updateErpSpu, deleteErpSpu, addErpSpu, putAliProductList } from '@/api/stock'
 import qs from 'qs'
+import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
+  components: {
+    DropdownButton
+  },
   data() {
     return {
       tableLoading: false,
@@ -212,9 +242,10 @@ export default {
       stockData: [],
       paginator: {
         offset: 0,
-        limit: 50,
+        limit: 20,
         SectionNum: '',
-        Stock: ''
+        Stock: '',
+        Group: ''
       },
       paginatorInfo: {},
       selectList: [],
@@ -222,6 +253,9 @@ export default {
     }
   },
   created() {
+    if (this.$route.path.replace('/stock/', '') !== 'all') {
+      this.paginator.Group = this.$route.path.replace('/stock/', '')
+    }
     this.getList()
   },
   methods: {
@@ -252,13 +286,13 @@ export default {
       this.tableHeight = sign ? '500' : ''
       this.tableLoading = sign
     },
-    toSectionDetails(row, column, event) {
-      if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
-        this.$router.push({
-          name: 'stockDetails',
-          params: { id: row.Id }
-        })
-      }
+    toSectionDetails(Id) {
+      this.$router.push({
+        name: 'stockDetails',
+        params: { id: Id }
+      })
+      // if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
+      // }
     },
     handleSpuEdit(id) {
       const stockDataLen = this.stockData.length
@@ -284,6 +318,19 @@ export default {
           }
         })
       })
+    },
+    handleCommand({ type, data }) {
+      switch (type) {
+        case 'detail':
+          this.toSectionDetails(data.Id)
+          break
+        case 'edit':
+          this.handleSpuEdit(data.Id)
+          break
+        case 'delete':
+          this.handleSpuDelete(data.Id)
+          break
+      }
     },
     beforeXlsUpload(file) {
       const pattern = /^(\S)*.xlsx/
@@ -449,15 +496,14 @@ export default {
 </script>
 
 <style lang="scss">
-  .box-card {
-    min-height: calc(100vh - 70px);
-    & a {
-      color: #409eff;
-    }
+  .search-card {
+    // position:fixed;
+    margin-bottom: 10px;
     .content__btns {
       display: inline-flex;
       width: 100%;
       margin: 15px 0;
+      margin-bottom: 0;
       // 结果条数
       .content__btns__result {
         flex: 1;
@@ -476,6 +522,51 @@ export default {
           margin-left: 5px;
         }
       }
+    }
+  }
+  .group-card {
+    .el-card__header {
+      background-color: #edf2fa;
+      padding: 11px 20px;
+    }
+    .el-card__body {
+      padding: 0px;
+    }
+    .group-card__add {
+      font-size: 17px;
+      cursor: pointer;
+    }
+    .group-card__item {
+      font-size: 14px;
+      line-height: 38px;
+      border-top: 1px solid #dedede;
+      padding: 0 20px;
+      cursor: pointer;
+      &:first-child {
+        border-top: 0px;
+      }
+      &:hover, &.active {
+        .group-card__item__tool {
+          display: block;
+        }
+        background-color: #edf2fa;
+        color: #66b1ff;
+      }
+    }
+    .group-card__item__tool {
+      float: right;
+      color: #666;
+      display: none;
+      > i {
+          margin-left: 5px;
+      }
+    }
+  }
+  .table-card {
+    // width: 90%;
+    min-height: calc(100vh - 70px);
+    & a {
+      color: #409eff;
     }
   }
   .avatar-uploader .el-upload {

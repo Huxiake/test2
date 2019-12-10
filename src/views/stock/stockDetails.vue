@@ -38,8 +38,8 @@
         <el-row>
           <!-- 按钮 -->
           <el-col :xs="{ span:10, offset:14}" :sm="{ span:6, offset:20}" :md="{ span:13}" :lg="{span:4, offset:21}" :xl="{span:3, offset:22}">
-            <el-button type="primary" size="small" @click="handlePrint(0)">打印全部</el-button>
-            <el-button type="warning" size="small" @click="handleNewSku">新增</el-button>
+            <el-button type="primary" size="mini" @click="handlePrint(0)">打印全部</el-button>
+            <el-button type="warning" size="mini" @click="handleNewSku">新增</el-button>
           </el-col>
         </el-row>
       </div>
@@ -226,7 +226,7 @@ export default {
     //   margin-bottom: 20px;
     // }
   }
-  .el-form-item--mini.el-form-item, .el-form-item--small.el-form-item {
+  .el-form-item--mini.el-form-item, .el-form-item--mini.el-form-item {
     margin-bottom: 5px;
   }
 </style>
