@@ -117,3 +117,37 @@ export function putAliProductList() {
     method: 'post'
   })
 }
+
+// 获取分组
+export function getGroupList() {
+  return request({
+    url: '/stock/getGroupList',
+    method: 'get'
+  })
+}
+
+// 编辑分组
+export function updateErpGroup(data) {
+  return request({
+    url: '/stock/updateErpGroup',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除分组
+export function deleteGroup(params) {
+  return request({
+    url: '/stock/deleteGroup?' + params,
+    method: 'post'
+  })
+}
+
+// 添加分组
+export function addErpGroup(data) {
+  return request({
+    url: '/stock/addErpGroup',
+    method: 'post',
+    data: data
+  })
+}

@@ -26,11 +26,11 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/stock/index',
+    redirect: '/stock/all',
     hidden: true,
     children: [{
       path: 'dashboard',
-      redirect: '/stock/index',
+      redirect: '/stock/all',
       name: 'Dashboard',
       // component: () => import('@/views/dashboard/index'),
       meta: { title: '主页', icon: 'dashboard' }
@@ -42,11 +42,23 @@ export const constantRoutes = [
     component: Layout,
     children: [
       {
-        path: 'index',
-        name: 'stock',
+        path: 'all',
+        name: 'allstock',
         component: () => import('@/views/stock/index'),
         meta: { title: '库存管理', icon: 'kucun' }
       },
+      // {
+      //   path: 'ali',
+      //   name: 'alistock',
+      //   component: () => import('@/views/stock/index'),
+      //   meta: { title: '阿里库存', icon: 'kucun' }
+      // },
+      // {
+      //   path: 'ny',
+      //   name: 'nystock',
+      //   component: () => import('@/views/stock/index'),
+      //   meta: { title: '南油库存', icon: 'kucun' }
+      // },
       {
         path: 'index/scaningEnter',
         name: 'scaningEnter',

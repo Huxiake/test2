@@ -30,6 +30,7 @@
             <el-button type="primary" size="mini" @click="handleScaningEnter">入库</el-button>
             <el-button type="warning" size="mini" @click="handleScaningOut">出库</el-button>
             <el-button type="primary" size="mini" @click="toPrint">打印标签</el-button>
+            <el-button type="primary" size="mini" @click="handleSetGroup">分组设置</el-button>
             <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条商品信息</span>
           </div>
           <div class="content__btns__group">
@@ -46,17 +47,20 @@
         <el-card class="group-card">
           <div slot="header" class="clearfix">
             <span>库存分组</span>
-            <i style="float: right;" class="el-icon-plus group-card__add" />
+            <i style="float: right;" class="el-icon-plus group-card__add" @click="handleNewGroup" />
           </div>
-          <div class="group-card__item">
-            测试分组1
+          <div
+            v-for="item in groupList"
+            :key="item.Id"
+            class="group-card__item"
+            :class="{ 'active': paginator.GroupId == item.Id }"
+            @click="changeGroup(item.Id)"
+          >
+            {{ item.GroupName }}
             <span class="group-card__item__tool">
-              <i class="el-icon-edit" @click.stop="1" />
-              <i class="el-icon-delete" @click.stop="1" />
+              <i class="el-icon-edit" @click.stop="handleEditGroup(item)" />
+              <i class="el-icon-delete" @click.stop="deleteGroup(item.Id)" />
             </span>
-          </div>
-          <div class="group-card__item">
-            测试分组2
           </div>
         </el-card>
       </el-col>
@@ -100,8 +104,6 @@
                     :data="scope"
                     @command="handleCommand"
                   />
-                  <!-- <el-button type="primary" size="mini" @click="handleSpuEdit(scope.row.Id)">编辑</el-button> -->
-                  <!-- <el-button size="mini" @click="handleSpuDelete(scope.row.Id)">删除</el-button> -->
                 </template>
               </el-table-column>
             </el-table>
@@ -197,11 +199,66 @@
         <el-button type="primary" @click="addSubmit">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 分组 new -->
+    <el-dialog title="新建分组" :visible.sync="dialogNewGroupVisible">
+      <el-form>
+        <el-form-item label="分组名">
+          <el-input v-model="newGroup.GroupName" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogNewGroupVisible = false;newGroup.GroupName = '';">取 消</el-button>
+        <el-button type="primary" @click="addGroupSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 分组 edit -->
+    <el-dialog title="编辑分组" :visible.sync="dialogEditGroupVisible">
+      <el-form>
+        <el-form-item label="分组名">
+          <el-input v-model="editGroup.GroupName" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogEditGroupVisible = false;editGroup = {};">取 消</el-button>
+        <el-button type="primary" @click="editGroupSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 分组 set -->
+    <el-dialog title="分组设置" :visible.sync="dialogSetGroupVisible">
+      <el-form>
+        <el-form-item label="分组">
+          <el-select>
+            <el-option
+              v-for="item in groupList"
+              :key="item.Id"
+              :label="item.GroupName"
+              :value="item.Id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogSetGroupVisible = false;editGroup = {};">取 消</el-button>
+        <el-button type="primary" @click="1">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { stockList, uploadSpuXls, uploadSpuPic, updateErpSpu, deleteErpSpu, addErpSpu, putAliProductList } from '@/api/stock'
+import {
+  stockList,
+  uploadSpuXls,
+  uploadSpuPic,
+  updateErpSpu,
+  deleteErpSpu,
+  addErpSpu,
+  putAliProductList,
+  getGroupList,
+  updateErpGroup,
+  deleteGroup,
+  addErpGroup
+} from '@/api/stock'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
 
@@ -215,6 +272,9 @@ export default {
       tableHeight: '',
       dialogEditVisible: false,
       dialogAddVisible: false,
+      dialogNewGroupVisible: false,
+      dialogEditGroupVisible: false,
+      dialogSetGroupVisible: false,
       parmas: {
         first: ''
       },
@@ -245,18 +305,27 @@ export default {
         limit: 20,
         SectionNum: '',
         Stock: '',
-        Group: ''
+        GroupId: '1333'
       },
       paginatorInfo: {},
       selectList: [],
-      overTime: (new Date()).valueOf()
+      overTime: (new Date()).valueOf(),
+      groupList: [],
+      newGroup: {
+        GroupName: ''
+      },
+      editGroup: {
+        Id: '',
+        GroupName: ''
+      }
     }
   },
   created() {
-    if (this.$route.path.replace('/stock/', '') !== 'all') {
-      this.paginator.Group = this.$route.path.replace('/stock/', '')
-    }
+    // if (this.$route.path.replace('/stock/', '') !== 'all') {
+    //   this.paginator.Group = this.$route.path.replace('/stock/', '')
+    // }
     this.getList()
+    this.getGroupList()
   },
   methods: {
     getList() {
@@ -490,6 +559,64 @@ export default {
           console.log(e)
           this.tableLoading = false
         })
+    },
+    handleNewGroup() {
+      this.dialogNewGroupVisible = true
+    },
+    handleEditGroup(item) {
+      this.editGroup = { ...item }
+      this.dialogEditGroupVisible = true
+    },
+    getGroupList() {
+      getGroupList()
+        .then(res => {
+          if (res.success) {
+            this.groupList = res.data.rows
+          }
+        })
+    },
+    deleteGroup(id) {
+      this.$confirm('此操作将删除该分组, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteGroup('groupId=' + id)
+          .then(res => {
+            if (res.success) {
+              this.$message.success('删除分组成功')
+              this.getGroupList()
+            }
+          })
+      })
+    },
+    addGroupSubmit() {
+      addErpGroup(this.newGroup)
+        .then(res => {
+          if (res.success) {
+            this.dialogNewGroupVisible = false
+            this.getGroupList()
+          }
+        })
+    },
+    editGroupSubmit() {
+      updateErpGroup(this.editGroup)
+        .then(res => {
+          if (res.success) {
+            this.dialogEditGroupVisible = false
+            this.getGroupList()
+          }
+        })
+    },
+    changeGroup(id) {
+      console.log(id)
+      if (id !== this.paginator.GroupId) {
+        this.paginator.GroupId = id
+        this.getList()
+      }
+    },
+    handleSetGroup() {
+      this.dialogSetGroupVisible = true
     }
   }
 }
@@ -542,13 +669,15 @@ export default {
       border-top: 1px solid #dedede;
       padding: 0 20px;
       cursor: pointer;
-      &:first-child {
-        border-top: 0px;
-      }
-      &:hover, &.active {
+      // &:first-child {
+      //   border-top: 0px;
+      // }
+      &:hover {
         .group-card__item__tool {
           display: block;
         }
+      }
+      &:hover, &.active {
         background-color: #edf2fa;
         color: #66b1ff;
       }
