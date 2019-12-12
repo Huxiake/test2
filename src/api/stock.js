@@ -151,3 +151,11 @@ export function addErpGroup(data) {
     data: data
   })
 }
+
+// 设置分组
+export function setSpuGroup(params) {
+  return request({
+    url: '/stock/setSpuGroup?' + params,
+    method: 'post'
+  })
+}

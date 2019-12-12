@@ -30,7 +30,7 @@
             <el-button type="primary" size="mini" @click="handleScaningEnter">入库</el-button>
             <el-button type="warning" size="mini" @click="handleScaningOut">出库</el-button>
             <el-button type="primary" size="mini" @click="toPrint">打印标签</el-button>
-            <el-button type="primary" size="mini" @click="handleSetGroup">分组设置</el-button>
+            <el-button type="primary" size="mini" @click="selectList.length > 0 ? handleSetGroup() : 1">分组设置</el-button>
             <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条商品信息</span>
           </div>
           <div class="content__btns__group">
@@ -200,34 +200,34 @@
       </div>
     </el-dialog>
     <!-- 分组 new -->
-    <el-dialog title="新建分组" :visible.sync="dialogNewGroupVisible">
+    <el-dialog title="新建分组" :visible.sync="dialogNewGroupVisible" width="17%">
       <el-form>
         <el-form-item label="分组名">
           <el-input v-model="newGroup.GroupName" autocomplete="off" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogNewGroupVisible = false;newGroup.GroupName = '';">取 消</el-button>
-        <el-button type="primary" @click="addGroupSubmit">确 定</el-button>
+        <el-button size="mini" @click="dialogNewGroupVisible = false;newGroup.GroupName = '';">取 消</el-button>
+        <el-button size="mini" type="primary" @click="addGroupSubmit">确 定</el-button>
       </div>
     </el-dialog>
     <!-- 分组 edit -->
-    <el-dialog title="编辑分组" :visible.sync="dialogEditGroupVisible">
+    <el-dialog title="编辑分组" :visible.sync="dialogEditGroupVisible" width="17%">
       <el-form>
         <el-form-item label="分组名">
           <el-input v-model="editGroup.GroupName" autocomplete="off" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogEditGroupVisible = false;editGroup = {};">取 消</el-button>
-        <el-button type="primary" @click="editGroupSubmit">确 定</el-button>
+        <el-button size="mini" @click="dialogEditGroupVisible = false;editGroup = {};">取 消</el-button>
+        <el-button size="mini" type="primary" @click="editGroupSubmit">确 定</el-button>
       </div>
     </el-dialog>
     <!-- 分组 set -->
-    <el-dialog title="分组设置" :visible.sync="dialogSetGroupVisible">
+    <el-dialog title="分组设置" :visible.sync="dialogSetGroupVisible" width="17%">
       <el-form>
         <el-form-item label="分组">
-          <el-select>
+          <el-select v-model="currentGroupID">
             <el-option
               v-for="item in groupList"
               :key="item.Id"
@@ -238,8 +238,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogSetGroupVisible = false;editGroup = {};">取 消</el-button>
-        <el-button type="primary" @click="1">确 定</el-button>
+        <el-button size="mini" @click="dialogSetGroupVisible = false;editGroup = {};">取 消</el-button>
+        <el-button size="mini" type="primary" @click="currentGroupID !== '' ? setGroupSubmit() : 1">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -257,7 +257,8 @@ import {
   getGroupList,
   updateErpGroup,
   deleteGroup,
-  addErpGroup
+  addErpGroup,
+  setSpuGroup
 } from '@/api/stock'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
@@ -275,9 +276,6 @@ export default {
       dialogNewGroupVisible: false,
       dialogEditGroupVisible: false,
       dialogSetGroupVisible: false,
-      parmas: {
-        first: ''
-      },
       imageUrl_temp: '',
       editSpuInfo: {
         Id:	'',
@@ -317,7 +315,8 @@ export default {
       editGroup: {
         Id: '',
         GroupName: ''
-      }
+      },
+      currentGroupID: ''
     }
   },
   created() {
@@ -356,10 +355,11 @@ export default {
       this.tableLoading = sign
     },
     toSectionDetails(Id) {
-      this.$router.push({
+      const spuDetails = this.$router.resolve({
         name: 'stockDetails',
         params: { id: Id }
       })
+      window.open(spuDetails .href, '_blank');
       // if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
       // }
     },
@@ -617,6 +617,17 @@ export default {
     },
     handleSetGroup() {
       this.dialogSetGroupVisible = true
+    },
+    setGroupSubmit() {
+      const params = 'SpuIDList=[' + this.selectList.join(',') + ']&GroupID=' + this.currentGroupID
+      setSpuGroup(params)
+        .then(res => {
+          if (res.success) {
+            this.dialogSetGroupVisible = false
+            this.$message.success('分组设置成功')
+            this.getList()
+          }
+        })
     }
   }
 }

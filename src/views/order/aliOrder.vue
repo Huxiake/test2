@@ -57,7 +57,18 @@
                 <el-button size="mini" type="warning" @click="pickupOrder">订单拣货</el-button>
               </div>
               <div v-else>
-                <el-button size="mini" type="warning" @click="confirmSend">确认发货</el-button>
+                <el-button size="mini" type="warning" @click="selectList.length > 0 ? confirmSend() : 1">确认发货</el-button>
+                <el-popover
+                  placement="bottom"
+                  title="标题"
+                  width="200"
+                  trigger="manual"
+                  content="这是一段内容,这是一段内容,这是一段内容,这是一段内容。"
+                  v-model="viewAllProfitVisible"
+                >
+                  <!-- <el-button slot="reference" @click="visible = !visible">手动激活</el-button> -->
+                  <el-button slot="reference" size="mini" type="warning" @click="viewAllProfitVisible = !viewAllProfitVisible; exportProfit()">导出利润</el-button>
+                </el-popover>
               </div>
             </div>
             <div v-else-if="paginator.ErpStatus === 'shiped'">
@@ -276,6 +287,10 @@
         <el-button @click="dialogOrderPickupVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
+    <!-- 查看利润历史 -->
+    <!-- <el-dialog v-loading="dialogOrderPickupLoading" title="导出利润" :visible.sync="dialogViewAllProfitVisible">
+      查看利润历史
+    </el-dialog> -->
   </div>
 </template>
 
@@ -306,6 +321,7 @@ export default {
       dialogAddOrderDetalisVisible: false,
       dialogOrderPickupVisible: false,
       dialogOrderPickupLoading: false,
+      viewAllProfitVisible: false,
       detailBtnLoading: null,
       tableLoading: false,
       tableData: [],
@@ -455,6 +471,10 @@ export default {
         .finally(() => {
           this.tableLoadingMode(false)
         })
+    },
+    // 查看利润导出历史 
+    exportProfit() {
+
     },
     // 获取当前拣货订单详情
     getPickupOrderDetail() {

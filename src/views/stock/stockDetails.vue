@@ -123,6 +123,7 @@ export default {
         if (res.success) {
           this.sectionData = res.data.rows
           this.detailsData = res.data.rows.ErpSkus
+          document.title = this.sectionData.SectionNum + ' | ' + this.sectionData.Name
         }
       })
     },
