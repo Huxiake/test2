@@ -76,7 +76,7 @@
               <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.ErpSku.Size }}</div>
             </template>
           </el-table-column>
-          <el-table-column label="价格" align="center">
+          <el-table-column label="拿货价格" align="center">
             <template slot-scope="scope">
               <el-input v-if="scope.row.Id === editSkuInfo.Id" v-model="editSkuInfo.Price" style="width:180px" @change="editFeedbackItem('Price')" />
               <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.ErpGetGoods.ErpSku.ErpSpu.Price }}</div>

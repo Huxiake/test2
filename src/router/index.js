@@ -33,7 +33,8 @@ export const constantRoutes = [
       redirect: '/stock/all',
       name: 'Dashboard',
       // component: () => import('@/views/dashboard/index'),
-      meta: { title: '主页', icon: 'dashboard' }
+      meta: { title: '主页' }
+      // meta: { title: '主页', icon: 'dashboard' }
     }]
   },
 
@@ -45,7 +46,8 @@ export const constantRoutes = [
         path: 'all',
         name: 'allstock',
         component: () => import('@/views/stock/index'),
-        meta: { title: '库存管理', icon: 'kucun' }
+        meta: { title: '库存管理' }
+        // meta: { title: '库存管理', icon: 'kucun' }
       },
       // {
       //   path: 'ali',
@@ -64,21 +66,21 @@ export const constantRoutes = [
         name: 'scaningEnter',
         hidden: true,
         component: () => import('@/views/stock/scaningEnter'),
-        meta: { title: '扫描入库', icon: 'kucun' }
+        meta: { title: '扫描入库' }
       },
       {
         path: 'index/scaningOut',
         name: 'scaningOut',
         hidden: true,
         component: () => import('@/views/stock/scaningOut'),
-        meta: { title: '扫描出库', icon: 'kucun' }
+        meta: { title: '扫描出库' }
       },
       {
         path: 'details/:id',
         name: 'stockDetails',
         hidden: true,
         component: () => import('@/views/stock/stockDetails'),
-        meta: { title: '库存详情', icon: 'kucun' }
+        meta: { title: '库存详情' }
       }
     ]
   },
@@ -86,79 +88,47 @@ export const constantRoutes = [
   {
     path: '/order',
     component: Layout,
-    meta: { title: '订单管理', icon: 'dingdan' },
+    meta: { title: '订单管理' },
     children: [
       {
         path: 'ali',
         name: 'ali',
         component: () => import('@/views/order/aliOrder'),
-        meta: { title: '阿里订单', icon: 'ali' }
+        meta: { title: '阿里订单' }
       },
       {
         path: 'other',
         name: 'other',
         component: () => import('@/views/order/otherOrder'),
-        meta: { title: '自建订单', icon: 'qita' }
+        meta: { title: '自建订单' }
       }
-      // {
-      //   path: 'pending',
-      //   name: 'pending',
-      //   component: () => import('@/views/order/pending'),
-      //   meta: { title: '待处理', icon: 'pending' }
-      // },
-      // {
-      //   path: 'fulfilled',
-      //   name: 'fulfilled',
-      //   component: () => import('@/views/order/fulfilled'),
-      //   meta: { title: '已配货', icon: 'fulfilled' }
-      // },
-      // {
-      //   path: 'completed',
-      //   name: 'completed',
-      //   component: () => import('@/views/order/completed'),
-      //   meta: { title: '已完成', icon: 'completed' }
-      // }
     ]
   },
-
-  // {
-  //   path: '/pickup',
-  //   component: Layout,
-  //   meta: { title: '发货管理', icon: 'dingdan' },
-  //   children: [
-  //     {
-  //       path: 'ali',
-  //       name: 'ali',
-  //       component: () => import('@/views/order/aliOrder'),
-  //       meta: { title: '未拣货', icon: 'ali' }
-  //     },
-  //     {
-  //       path: 'other',
-  //       name: 'other',
-  //       component: () => import('@/views/order/temporder'),
-  //       meta: { title: '已拣货', icon: 'qita' }
-  //     }
-  //   ]
-  // },
 
   {
     path: '/goods',
     component: Layout,
     redirect: '/example/table',
     name: 'Example',
-    meta: { title: '拿货管理', icon: 'nahuo' },
+    meta: { title: '拿货管理' },
     children: [
       {
         path: 'list',
         name: 'list',
         component: () => import('@/views/get_goods/index'),
-        meta: { title: '拿货列表', icon: 'liebiao' }
+        meta: { title: '拿货列表' }
       },
       {
         path: 'feedback',
         name: 'feedback',
         component: () => import('@/views/get_goods/feedback'),
-        meta: { title: '拿货反馈', icon: 'fankui' }
+        meta: { title: '拿货反馈' }
+      },
+      {
+        path: 'toPrint',
+        name: 'toPrint',
+        component: () => import('@/views/get_goods/toPrint'),
+        meta: { title: '待打印' }
       }
     ]
   },
@@ -168,7 +138,7 @@ export const constantRoutes = [
     name: 'downpage',
     hidden: true,
     component: () => import('@/views/components/downpage'),
-    meta: { title: '库存标签打印', icon: 'fankui' }
+    meta: { title: '库存标签打印' }
   },
 
   {
@@ -176,7 +146,7 @@ export const constantRoutes = [
     name: 'downGetGoods',
     hidden: true,
     component: () => import('@/views/components/downGetGoods'),
-    meta: { title: '拿货标签打印', icon: 'fankui' }
+    meta: { title: '拿货标签打印' }
   },
 
   {
@@ -184,7 +154,7 @@ export const constantRoutes = [
     name: 'downGetGoodsTemp',
     hidden: true,
     component: () => import('@/views/components/downGetGoodsTemp'),
-    meta: { title: '临时标签打印', icon: 'fankui' }
+    meta: { title: '临时标签打印' }
   },
 
   // 404 page must be placed at the end !!!

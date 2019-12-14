@@ -91,7 +91,7 @@
               <el-table-column label="标题" align="center" prop="Name" />
               <el-table-column label="款号" align="center" prop="SectionNum" />
               <el-table-column label="拿货编号" align="center" prop="GetGoodsNum" />
-              <el-table-column label="价格" align="center" prop="Price" />
+              <el-table-column label="拿货价格" align="center" prop="Price" />
               <el-table-column label="备注" align="center" prop="Remark" />
               <el-table-column label="操作" align="center" width="200">
                 <template slot-scope="scope">
@@ -149,9 +149,19 @@
         <el-form-item label="拿货编号">
           <el-input v-model="editSpuInfo.GetGoodsNum" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="价格">
+        <el-form-item label="拿货价格">
           <el-input v-model="editSpuInfo.Price" autocomplete="off" />
         </el-form-item>
+        <!-- <el-form-item label="分组">
+          <el-select v-model="editSpuInfo.Group">
+            <el-option
+              v-for="item in groupList"
+              :key="item.Id"
+              :label="item.GroupName"
+              :value="item.Id"
+            />
+          </el-select>
+        </el-form-item> -->
         <el-form-item label="备注">
           <el-input v-model="editSpuInfo.Remark" type="textarea" autocomplete="off" />
         </el-form-item>
@@ -187,8 +197,18 @@
         <el-form-item label="拿货编号">
           <el-input v-model="addSpuInfo.GetGoodsNum" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="价格">
+        <el-form-item label="拿货价格">
           <el-input v-model="addSpuInfo.Price" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="分组">
+          <el-select v-model="addSpuInfo.Group">
+            <el-option
+              v-for="item in groupList"
+              :key="item.Id"
+              :label="item.GroupName"
+              :value="item.Id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="addSpuInfo.Remark" type="textarea" autocomplete="off" />
@@ -286,6 +306,7 @@ export default {
         Img: '',
         GetGoodsNum: '',
         Price: '',
+        Group: '',
         Remark: ''
       },
       addSpuInfo: {
@@ -295,6 +316,7 @@ export default {
         Img: '',
         GetGoodsNum: '',
         Price: '',
+        Group: '',
         Remark: ''
       },
       stockData: [],
