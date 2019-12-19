@@ -159,3 +159,11 @@ export function setSpuGroup(params) {
     method: 'post'
   })
 }
+
+// 添加至打印列表
+export function addToPrintList(params) {
+  return request({
+    url: '/stock/details/addToPrintList?' + params,
+    method: 'post'
+  })
+}

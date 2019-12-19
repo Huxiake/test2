@@ -1,6 +1,6 @@
 <template>
   <!-- 查看订单详情dialog -->
-  <el-dialog title="订单详情" :visible.sync="visible">
+  <el-dialog title="订单详情" :visible.sync="visible" @keyup.enter.native="save">
     <el-alert
       :title="'单号：' + orderDetail.orders[0].OrderNum + '\n姓名：' + orderDetail.orderDetail.contactPerson + '\n手机：' + orderDetail.orderDetail.mobile + '\n邮编：' + orderDetail.orderDetail.areaCode + '\n地址：' + orderDetail.orderDetail.address"
       type="info"
@@ -14,75 +14,69 @@
       style="margin-bottom: 20px"
       :closable="false"
     />
-    <el-table
-      :data="orderDetail.orders[0].ErpOrderDetails"
-      border
-      stripe
+    <div
+      v-for="(item, index) in orderDetail.orders"
+      :key="index"
     >
-      <el-table-column label="商品信息">
-        <template slot-scope="scope">
-          <div class="goodsInfo-left">
-            <el-popover
-              placement="right-start"
-              width="326"
-              trigger="hover"
-            >
-              <img :src="scope.row.ProductImgURL" style="margin:0 auto;width:300px;height:300px">
-              <span>{{ "ID: " + scope.row.SectionID }}</span>
-              <img slot="reference" :src="scope.row.ProductImgURL" style="width:66px;height:66px;border:2px solid #e3e3e3;">
-            </el-popover>
-          </div>
-          <div class="goodsInfo-right">
-            <div style="line-height:16px;">
-              <a :href="scope.row.SaleURL" target="_blank" style="color:#428bca">{{ scope.row.Color + " " + scope.row.Size }}</a>
-              <span>*</span>
-              <el-badge :value="scope.row.Amount" class="item" style="padding-top: 8px;" :type="Number(scope.row.Amount) > 1 ? 'danger' : 'info'" />
+      <el-divider content-position="left">订单号：{{ item.OrderNum }}</el-divider>
+      <!-- :data="orderDetail.orders[0].ErpOrderDetails" -->
+      <el-table
+        :data="item.ErpOrderDetails"
+        border
+        stripe
+      >
+        <el-table-column label="商品信息">
+          <template slot-scope="scope">
+            <div class="goodsInfo-left">
+              <el-popover
+                placement="right-start"
+                width="326"
+                trigger="hover"
+              >
+                <img :src="scope.row.ProductImgURL" style="margin:0 auto;width:300px;height:300px">
+                <span>{{ "ID: " + scope.row.SectionID }}</span>
+                <img slot="reference" :src="scope.row.ProductImgURL" style="width:66px;height:66px;border:2px solid #e3e3e3;">
+              </el-popover>
             </div>
-            <div>
-              {{ scope.row.SectionNum }}
+            <div class="goodsInfo-right">
+              <div style="line-height:16px;">
+                <a :href="scope.row.SaleURL" target="_blank" style="color:#428bca">{{ scope.row.Color + " " + scope.row.Size }}</a>
+                <span>*</span>
+                <el-badge :value="scope.row.Amount" class="item" style="padding-top: 8px;" :type="Number(scope.row.Amount) > 1 ? 'danger' : 'info'" />
+              </div>
+              <div>
+                {{ scope.row.SectionNum }}
+              </div>
+              <div>
+                {{ scope.row.ProductSalePrice }}
+              </div>
             </div>
-            <div>
-              {{ scope.row.ProductSalePrice }}
-            </div>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态">
-        <template slot-scope="scope">
-          <el-tag v-if="pickedList.indexOf(scope.row.Id) !== -1" type="success" size="small">已拣货</el-tag>
-          <el-tag v-if="getAgainList.indexOf(scope.row.Id) !== -1" type="warning" size="small">重拿</el-tag>
-          <el-tag v-if="ignoreList.indexOf(scope.row.Id) !== -1" type="danger" size="small">搁置</el-tag>
-          <el-tag v-if="refundList.indexOf(scope.row.Id) !== -1" type="danger" size="small">退货</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="200">
-        <template slot-scope="scope">
-          <DropdownButton
-            :items="[
-              { name: '已拣货', type: 'picked', if: true },
-              { name: '重拿', type: 'getAgain', if: true },
-              { name: '搁置', type: 'ignore', if: true },
-              { name: '退货', type: 'return', if: orderDetail.orders[0].ErpStatus === 'success' || orderDetail.orders[0].ErpStatus === 'shiped' },
-            ]"
-            :data="scope"
-            @command="handleCommand"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- <el-form label-position="right" label-width="100px">
-      <el-form-item>
-        <img style="width: 100px; height: 100px" :src="newOrderDetailsInfo.SpuPicURL !== '' ? newOrderDetailsInfo.SpuPicURL : 'https://xkerp-pic.oss-cn-shenzhen.aliyuncs.com/zhanwei.png'">
-      </el-form-item>
-      <el-form-item label="款号">
-        <el-input v-model="newOrderDetailsInfo.SectionNum" autocomplete="off" @change="changeSectionID" />
-      </el-form-item>
-    </el-form> -->
-    <!-- <el-tabs type="border-card" class="op-card">
-      <el-tab-pane label="仓库操作">
-        <el-button size="mini">发货</el-button>
-      </el-tab-pane>
-    </el-tabs> -->
+          </template>
+        </el-table-column>
+        <el-table-column label="状态">
+          <template slot-scope="scope">
+            <el-tag v-if="pickedList.indexOf(scope.row.Id) !== -1" type="success" size="small">已拣货</el-tag>
+            <el-tag v-if="getAgainList.indexOf(scope.row.Id) !== -1" type="warning" size="small">重拿</el-tag>
+            <el-tag v-if="ignoreList.indexOf(scope.row.Id) !== -1" type="danger" size="small">搁置</el-tag>
+            <el-tag v-if="refundList.indexOf(scope.row.Id) !== -1" type="danger" size="small">退货</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200">
+          <template slot-scope="scope">
+            <DropdownButton
+              :items="[
+                { name: '已拣货', type: 'picked', if: true },
+                { name: '重拿', type: 'getAgain', if: true },
+                { name: '搁置', type: 'ignore', if: true },
+                { name: '退货', type: 'return', if: orderDetail.orders[0].ErpStatus === 'success' || orderDetail.orders[0].ErpStatus === 'shiped' },
+              ]"
+              :data="scope"
+              @command="handleCommand"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
     <div slot="footer" class="dialog-footer">
       <el-button @click="close">
         关闭
@@ -136,12 +130,19 @@ export default {
       this.type = type
       this.orderDetail = data
       this.visible = true
+      if (this.type === 'pickup' || this.orderDetail.orders[0].ErpStatus === 'fulfilled') {
+        this.keyupSubmit()
+      }
     },
     save() {
       this.visible = false
-      markPicked('OrderList=[' + this.orderDetail.orders[0].Id + ']')
+      var OrderList = []
+      for (let i = 0, len = this.orderDetail.orders.length; i < len; i++) {
+        OrderList.push(this.orderDetail.orders[i].Id)
+      }
+      markPicked('OrderList=[' + OrderList.join(',') + ']')
         .then(res => {
-          console.log(res)
+          // console.log(res)
         })
       this.$emit('submit', this.type)
     },
@@ -195,6 +196,14 @@ export default {
               console.log(e)
             })
           break
+      }
+    },
+    keyupSubmit() {
+      document.onkeydown = e => {
+        const _key = window.event.keyCode
+        if (_key === 13) {
+          this.save()
+        }
       }
     }
   }

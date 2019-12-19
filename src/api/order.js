@@ -146,3 +146,27 @@ export function returnGoodsByOrderDetailID(params) {
     method: 'post'
   })
 }
+
+// 更新订单金额利润
+export function updateProfitCostByOrderID(params) {
+  return request({
+    url: '/order/updateProfitCostByOrderID?' + params,
+    method: 'post'
+  })
+}
+
+// 标记订单确认退货
+export function markRefund(params) {
+  return request({
+    url: '/order/markRefund?' + params,
+    method: 'post'
+  })
+}
+
+// 根据idlist导出利润文件
+export function exportProfitFile(params) {
+  return request({
+    url: '/order/exportProfitFile?' + params,
+    method: 'post'
+  })
+}

@@ -2,32 +2,24 @@
   <div class="app-container">
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>拿货列表</span>
+        <span>待打印列表</span>
       </div>
       <div class="box-tools">
-        <el-row :gutter="4" type="flex" justify="right">
-          <el-col :span="17">
-            <el-button type="primary" size="mini" @click="toPrint">打印</el-button>
-            <el-button type="warning" size="mini" @click="tempPrint">临时打印</el-button>
-            <el-button type="success" size="mini" @click="toGet(selectList)">完成</el-button>
-          </el-col>
-          <el-col :span="2">
-            <el-select v-model="paginator.GoodsStatus" size="mini" placeholder="拿货状态">
-              <el-option label="全部" value="" />
-              <el-option label="待拿货" value="Pending" />
-              <el-option label="已拿货" value="Get" />
-              <el-option label="缺货" value="Lack" />
-            </el-select>
-          </el-col>
+        <el-row :gutter="4" type="flex" justify="end">
           <el-col :span="4">
             <el-input
               v-model="paginator.OrderNum"
               size="mini"
-              placeholder="输入订单号可查询"
+              placeholder="输入关键词可查询"
             />
           </el-col>
           <el-col :span="1.5">
             <el-button type="primary" size="mini" @click="getList">查询</el-button>
+          </el-col>
+        </el-row>
+        <el-row :gutter="4" type="flex" justify="start">
+          <el-col :span="17">
+            <el-button type="primary" size="mini" @click="toPrint">打印</el-button>
           </el-col>
         </el-row>
       </div>
@@ -50,11 +42,6 @@
               </el-popover>
             </template>
           </el-table-column>
-          <el-table-column label="订单号" align="center" width="200">
-            <template slot-scope="scope">
-              <div>{{ scope.row.OrderNum }}</div>
-            </template>
-          </el-table-column>
           <el-table-column label="款号" align="center">
             <template slot-scope="scope">
               <div>{{ scope.row.ErpSku.SectionNum }}</div>
@@ -75,7 +62,6 @@
                 </el-option>
               </el-select>
               <div v-if="scope.row.Id !== editSkuInfo.Id">{{ scope.row.GetGoodsNum }}</div>
-              <!-- <div>{{ scope.row.GetGoodsNum }}</div> -->
             </template>
           </el-table-column>
           <el-table-column label="颜色" align="center">
@@ -96,20 +82,11 @@
             </template>
           </el-table-column>
           <el-table-column label="数量" prop="Amount" align="center" />
-          <el-table-column label="备注" prop="Remark" align="center" />
-          <el-table-column label="状态" align="center">
-            <template slot-scope="scope">
-              <el-tag v-if="scope.row.IsLack === 0 && scope.row.IsGet === 0" size="mini" type="info">待拿货</el-tag>
-              <el-tag v-if="scope.row.IsLack === 1" size="mini" type="danger">缺货</el-tag>
-              <el-tag v-if="scope.row.IsGet === 1" size="mini" type="success">已拿货</el-tag>
-            </template>
-          </el-table-column>
+          <!-- <el-table-column label="备注" prop="Remark" align="center" />
           <el-table-column label="操作" prop="" align="center" width="138">
             <template slot-scope="scope">
-              <!-- <el-link :underline="false" @click="handleEditGetGoodsInfo(scope.row)">编辑</el-link> -->
               <a v-if="scope.row.Id === editSkuInfo.Id" style="color:#409eff" @click="handleSkuSave()">保存<br></a>
               <a v-if="scope.row.Id === editSkuInfo.Id" @click="cancelEditSku">取消</a>
-              <!-- <a v-else style="color:#409eff" @click="handleEditGetGoodsInfo(scope.row)">编辑<br></a> -->
               <DropdownButton
                 v-else
                 :items="[
@@ -121,7 +98,7 @@
                 @command="handleCommand"
               />
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
         <el-pagination
           :current-page="paginatorInfo.currentPage"
@@ -150,7 +127,7 @@
 
 <script>
 import {
-  getGoodsList,
+  getToPrintList,
   editGetGoodsInfo,
   getGetGoodsNumListBySpuID,
   setDefaultGetGoodsNum,
@@ -162,12 +139,12 @@ import {
 } from '@/api/order'
 
 import qs from 'qs'
-import DropdownButton from '@/views/components/DropdownButton'
+// import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
-  components: {
-    DropdownButton
-  },
+  // components: {
+  //   DropdownButton
+  // },
   data() {
     return {
       dialogScanfVisible: false,
@@ -177,7 +154,7 @@ export default {
         offset: 0,
         limit: 50,
         OrderNum: '',
-        GoodsStatus: 'Pending'
+        PrintStatus: '0'
       },
       selectList: [],
       scanfSkuList: [],
@@ -205,7 +182,7 @@ export default {
     getList() {
       this.tableLoading = true
       const searchAttrs = qs.stringify(this.paginator)
-      getGoodsList(searchAttrs)
+      getToPrintList(searchAttrs)
         .then(res => {
           if (res.success) {
             this.tableData = res.data.rows

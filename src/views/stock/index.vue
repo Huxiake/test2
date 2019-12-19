@@ -345,12 +345,17 @@ export default {
     // if (this.$route.path.replace('/stock/', '') !== 'all') {
     //   this.paginator.Group = this.$route.path.replace('/stock/', '')
     // }
-    this.getList()
     this.getGroupList()
+    this.getList()
   },
   methods: {
     getList() {
       this.tableLoading = true
+      if (this.paginator.SectionNum !== '') {
+        this.paginator.GroupId = ''
+      } else if (this.paginator.GroupId === '') {
+        this.paginator.GroupId = this.groupList[0].Id
+      }
       const searchAttrs = qs.stringify(this.paginator)
       stockList(searchAttrs).then(res => {
         if (res.success) {
@@ -381,7 +386,7 @@ export default {
         name: 'stockDetails',
         params: { id: Id }
       })
-      window.open(spuDetails .href, '_blank');
+      window.open(spuDetails.href, '_blank')
       // if (event.target.innerHTML !== '编辑' && event.target.innerHTML !== '<!----><!----><span>编辑</span>' && event.target.innerHTML !== '删除' && event.target.innerHTML !== '<!----><!----><span>删除</span>') {
       // }
     },
@@ -490,7 +495,7 @@ export default {
           if (this.editSpuInfo.Img.indexOf('alibaba') === -1) {
             this.$refs.spuImgUpload.submit()
           }
-          this.$message.success('修改成功')
+          this.$message.success('操作成功')
           this.getList()
           this.editSpuInfo = {
             Id:	'',
@@ -503,7 +508,7 @@ export default {
             Remark: ''
           }
         } else {
-          this.$message.error('修改失败，请稍后重试')
+          this.$message.error('操作失败，请稍后重试')
         }
       })
     },
@@ -631,7 +636,7 @@ export default {
         })
     },
     changeGroup(id) {
-      console.log(id)
+      this.paginator.SectionNum = ''
       if (id !== this.paginator.GroupId) {
         this.paginator.GroupId = id
         this.getList()

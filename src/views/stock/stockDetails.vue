@@ -77,7 +77,7 @@
                 <p>打印份数：</p>
                 <el-input-number v-model="printNum" size="mini" style="width:106px;margin:14px;margin-top:0px" />
                 <div style="text-align: right; margin: 0">
-                  <el-button type="primary" size="mini" @click="handlePrint(scope.row.Id)">打印</el-button>
+                  <el-button type="primary" size="mini" @click="handlePrint(scope.row.Id)">加入待打印</el-button>
                 </div>
                 <el-button slot="reference" size="mini" icon="el-icon-printer" />
               </el-popover>
@@ -90,7 +90,13 @@
 </template>
 
 <script>
-import { stockDetails, updateErpSku, deleteErpSku, addErpSku } from '@/api/stock'
+import {
+  stockDetails,
+  updateErpSku,
+  deleteErpSku,
+  addErpSku,
+  addToPrintList
+} from '@/api/stock'
 export default {
   data() {
     return {
@@ -156,11 +162,11 @@ export default {
       } else {
         updateErpSku(this.editSkuInfo).then(res => {
           if (res.success) {
-            this.$message.success('修改成功!')
+            this.$message.success('操作成功!')
             this.getStockDetails()
             this.editSkuInfo = {}
           } else {
-            this.$message.error('修改失败，请重试!')
+            this.$message.error('操作失败，请重试!')
           }
         })
       }
@@ -189,28 +195,35 @@ export default {
         this.editSkuInfo = {}
       }
     },
+    // handlePrint(id) {
+    //   if (id !== 0) {
+    //     const { href } = this.$router.resolve({
+    //       path: '/downpage',
+    //       query: {
+    //         id: this.sectionId,
+    //         num: this.printNum,
+    //         skuId: id
+    //       }
+    //     })
+    //     window.open(href, '_blank')
+    //     this.printNum = 0
+    //   } else {
+    //     const { href } = this.$router.resolve({
+    //       path: '/downpage',
+    //       query: {
+    //         id: this.sectionId
+    //       }
+    //     })
+    //     window.open(href, '_blank')
+    //   }
+    // }
     handlePrint(id) {
-      if (id !== 0) {
-        console.log('print', id)
-        const { href } = this.$router.resolve({
-          path: '/downpage',
-          query: {
-            id: this.sectionId,
-            num: this.printNum,
-            skuId: id
+      addToPrintList('skuID=' + id + '&amount=' + this.printNum)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
           }
         })
-        window.open(href, '_blank')
-        this.printNum = 0
-      } else {
-        const { href } = this.$router.resolve({
-          path: '/downpage',
-          query: {
-            id: this.sectionId
-          }
-        })
-        window.open(href, '_blank')
-      }
     }
   }
 }

@@ -58,17 +58,6 @@
               </div>
               <div v-else>
                 <el-button size="mini" type="warning" @click="selectList.length > 0 ? confirmSend() : 1">确认发货</el-button>
-                <el-popover
-                  placement="bottom"
-                  title="标题"
-                  width="200"
-                  trigger="manual"
-                  content="这是一段内容,这是一段内容,这是一段内容,这是一段内容。"
-                  v-model="viewAllProfitVisible"
-                >
-                  <!-- <el-button slot="reference" @click="visible = !visible">手动激活</el-button> -->
-                  <el-button slot="reference" size="mini" type="warning" @click="viewAllProfitVisible = !viewAllProfitVisible; exportProfit()">导出利润</el-button>
-                </el-popover>
               </div>
             </div>
             <div v-else-if="paginator.ErpStatus === 'shiped'">
@@ -77,6 +66,9 @@
             </div>
             <div v-else>
               <!-- TODO -->
+              <div v-if="pendingStatus === 'refunding'">
+                <el-button size="mini" type="warning" @click="selectList.length > 0 ? confirmRefund() : 1">确认退货</el-button>
+              </div>
             </div>
             <span class="total-tip">共筛选出 <font color="#DF6137;">{{ paginatorInfo.totalCount }}</font> 条订单信息</span>
           </div>
@@ -86,10 +78,14 @@
         </div>
       </div>
       <div class="box-table">
-        <el-tabs v-if="paginator.ErpStatus === 'pending'" v-model="pendingStatus" type="card" class="op-card" @tab-click="handleSubTab">
+        <el-tabs v-if="paginator.ErpStatus === 'pending'" v-model="pendingStatus" type="card" size="mini" class="op-card" @tab-click="handleSubTab">
           <el-tab-pane size="mini" label="待配货" name="pending" />
           <el-tab-pane size="mini" label="已配货" name="fulfilled" />
           <el-tab-pane size="mini" label="待确认" name="waitforconfirmation" />
+        </el-tabs>
+        <el-tabs v-if="paginator.ErpStatus === 'refund'" v-model="pendingStatus" type="card" size="mini" class="op-card" @tab-click="handleSubTab">
+          <el-tab-pane size="mini" label="待确认" name="refunding" />
+          <el-tab-pane size="mini" label="已退款" name="refund" />
         </el-tabs>
         <!-- 主表 -->
         <el-table
@@ -176,9 +172,27 @@
               {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD hh:mm:ss') }}
             </template>
           </el-table-column>
-          <el-table-column :formatter="tableFormatter" label="订单金额" align="center">
+          <el-table-column :formatter="tableFormatter" label="实付金额" align="center">
             <template slot-scope="scope">
               <span>{{ scope.row.GoodsRealPrice }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="pendingStatus === 'waitforconfirmation'" :formatter="tableFormatter" label="拿货成本" align="center">
+            <template slot-scope="scope">
+              <el-input v-if="editingOrderProfitInfo.Id === scope.row.Id" v-model="editingOrderProfitInfo.GetGoodsPrice" />
+              <span v-else>{{ scope.row.GetGoodsPrice }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="pendingStatus === 'waitforconfirmation'" :formatter="tableFormatter" label="利润" align="center">
+            <template slot-scope="scope">
+              <el-input v-if="editingOrderProfitInfo.Id === scope.row.Id" v-model="editingOrderProfitInfo.Profit" />
+              <span v-else>{{ scope.row.Profit }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="pendingStatus === 'refunding' || pendingStatus === 'refund'" :formatter="tableFormatter" label="退款金额" align="center">
+            <template slot-scope="scope">
+              <el-input v-if="editingOrderProfitInfo.Id === scope.row.Id" v-model="editingOrderProfitInfo.RefundPrice" />
+              <span v-else>{{ scope.row.RefundPrice }}</span>
             </template>
           </el-table-column>
           <el-table-column :formatter="tableFormatter" label="买家信息" prop="BuyerMemberName" align="center">
@@ -189,7 +203,7 @@
           <el-table-column :formatter="tableFormatter" label="买家留言" prop="BuyerRemake" align="center" />
           <el-table-column :formatter="tableFormatter" label="备注" prop="Remark" align="center" />
           <!-- 主表订单状态， 只读 -->
-          <el-table-column key="OrderStatus" label="平台状态" align="center" width="97">
+          <el-table-column v-if="paginator.ErpStatus !== 'refund'" key="OrderStatus" label="平台状态" align="center" width="97">
             <template slot-scope="scope">
               <el-tag v-if="scope.row.OrderStatus === 'success'" type="success" color="#008158" style="color:#ffffff" size="mini" effect="dark">已完成</el-tag>
               <el-tag v-if="scope.row.OrderStatus === 'waitsellersend'" size="mini" color="#e8811a" style="color:#ffffff" effect="dark">待发货</el-tag>
@@ -205,7 +219,8 @@
               <el-tag v-if="scope.row.ErpStatus === 'pending'" type="info" size="mini" effect="plain">未处理</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'shiped'" size="mini" effect="plain">已发货</el-tag>
               <el-tag v-if="scope.row.ErpStatus === 'success'" type="success" size="mini" effect="plain">已完成</el-tag>
-              <el-tag v-if="scope.row.ErpStatus === 'refund'" type="danger" size="mini" effect="plain">有退货</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'refunding'" type="danger" size="mini" effect="plain">退货中</el-tag>
+              <el-tag v-if="scope.row.ErpStatus === 'refund'" type="danger" size="mini" effect="plain">已退货</el-tag>
             </template>
           </el-table-column>
           <!-- 主表操作 -->
@@ -213,9 +228,12 @@
             <template slot-scope="scope">
               <DropdownButton
                 :items="[
-                  { name: '详情', type: 'detail', loading: scope.row.Id === detailBtnLoading, if: true },
-                  { name: '移至未发货', type: 'pending', if: paginator.ErpStatus === 'shiped' },
-                  { name: '删除', type: 'delete', if: true },
+                  { name: '详情', type: 'detail', loading: scope.row.Id === detailBtnLoading, if: editingOrderProfitInfo.Id !== scope.row.Id },
+                  { name: '移至未发货', type: 'pending', if: paginator.ErpStatus === 'shiped' && editingOrderProfitInfo.Id !== scope.row.Id },
+                  { name: '编辑', type: 'editProfit', if: (pendingStatus === 'waitforconfirmation' || pendingStatus === 'refunding') && editingOrderProfitInfo.Id !== scope.row.Id },
+                  { name: '删除', type: 'delete', if: editingOrderProfitInfo.Id !== scope.row.Id },
+                  { name: '保存', type: 'saveEditProfit', if: editingOrderProfitInfo.Id === scope.row.Id },
+                  { name: '取消', type: 'cancelEditProfit', if: editingOrderProfitInfo.Id === scope.row.Id },
                 ]"
                 :data="scope"
                 @command="handleCommand"
@@ -287,10 +305,6 @@
         <el-button @click="dialogOrderPickupVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
-    <!-- 查看利润历史 -->
-    <!-- <el-dialog v-loading="dialogOrderPickupLoading" title="导出利润" :visible.sync="dialogViewAllProfitVisible">
-      查看利润历史
-    </el-dialog> -->
   </div>
 </template>
 
@@ -305,7 +319,9 @@ import {
   pullAliOrderDetail,
   getOrderDetailByCourierNum,
   markCompleted,
-  signOrderPending
+  signOrderPending,
+  updateProfitCostByOrderID,
+  markRefund
 } from '@/api/order'
 import qs from 'qs'
 import DropdownButton from '@/views/components/DropdownButton'
@@ -358,7 +374,8 @@ export default {
         contactPerson: '',
         mobile: ''
       },
-      currentPickupOrderCurierNum: ''
+      currentPickupOrderCurierNum: '',
+      editingOrderProfitInfo: {}
     }
   },
   created() {
@@ -381,6 +398,11 @@ export default {
                 return item.ErpStatus === this.pendingStatus
               }) : []
               this.paginatorInfo.totalCount = this.tableData.length
+            } else if (this.paginator.ErpStatus === 'refund') {
+              // TODO
+              this.tableData = res.data.rows ? res.data.rows.filter(item => {
+                return item.ErpStatus === this.pendingStatus
+              }) : []
             } else {
               this.tableData = res.data.rows
             }
@@ -455,13 +477,15 @@ export default {
       this.dialogOrderPickupVisible = true
       this.getFocus()
     },
+    // 确认发货
     confirmSend() {
       this.tableLoadingMode(true)
       const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
       markCompleted(orderList)
         .then(res => {
           if (res.success) {
-            this.$message.success('确认成功!')
+            this.$message.success('操作成功!')
+            window.open(res.data.URL)
             this.getList()
           }
         })
@@ -472,32 +496,53 @@ export default {
           this.tableLoadingMode(false)
         })
     },
-    // 查看利润导出历史 
-    exportProfit() {
-
-    },
-    // 获取当前拣货订单详情
-    getPickupOrderDetail() {
-      this.dialogOrderPickupLoading = true
-      // 根据订单号获取订单详情
-      getOrderDetailByCourierNum(this.currentPickupOrderCurierNum)
+    // 确认退货
+    confirmRefund() {
+      this.tableLoadingMode(true)
+      const orderList = 'OrderList=[' + this.selectList.join(',') + ']'
+      markRefund(orderList)
         .then(res => {
           if (res.success) {
-            this.$refs.dialogOrderDetail.open(res.data, 'pickup')
-            this.currentPickupOrderCurierNum = ''
-            this.dialogOrderPickupVisible = false
-          } else {
-            this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
+            this.$message.success('操作成功!')
+            window.open(res.data.URL)
+            this.getList()
           }
         })
-        .catch(e => {
-          if (e === '<QuerySeter> no row found') {
-            this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
-          }
+        .catch(err => {
+          console.log(err)
         })
         .finally(() => {
-          this.dialogOrderPickupLoading = false
+          this.tableLoadingMode(false)
         })
+    },
+    // 查看利润导出历史
+    // exportProfit() {
+    // },
+    // 获取当前拣货订单详情
+    getPickupOrderDetail() {
+      if (this.currentPickupOrderCurierNum !== '') {
+        this.dialogOrderPickupLoading = true
+        // 根据订单号获取订单详情
+        getOrderDetailByCourierNum(this.currentPickupOrderCurierNum)
+          .then(res => {
+            if (res.success) {
+              this.$refs.dialogOrderDetail.open(res.data, 'pickup')
+              this.currentPickupOrderCurierNum = ''
+              this.dialogOrderPickupVisible = false
+            } else {
+              this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
+            }
+          })
+          .catch(e => {
+            if (e === '<QuerySeter> no row found') {
+              this.$message.error('快递单拉取详情失败, 请检查是否已同步快递单号')
+            }
+          })
+          .finally(() => {
+            console.log('请求结束')
+            this.dialogOrderPickupLoading = false
+          })
+      }
     },
     getFocus() {
       this.$nextTick(() => {
@@ -505,9 +550,14 @@ export default {
       })
     },
     nextOrderPickup(type) {
-      console.log(type)
       this.getList()
+      // if (type === 'pickup') this.pickupOrder()
       if (type === 'pickup') this.dialogOrderPickupVisible = true
+      this.$nextTick(() => {
+        console.log('准备获取焦点')
+        this.$refs.scanInput.$el.children[0].focus()
+      })
+      // this.getFocus()
     },
     handleSelectionChange(list) {
       const selectList_temp = []
@@ -600,6 +650,11 @@ export default {
     },
     // 点击tab页
     handleTab() {
+      if (this.paginator.ErpStatus === 'pending') {
+        this.pendingStatus = 'pending'
+      } else if (this.paginator.ErpStatus === 'refund') {
+        this.pendingStatus = 'refunding'
+      }
       this.getList()
     },
     handleSubTab() {
@@ -609,6 +664,7 @@ export default {
       switch (type) {
         case 'detail':
           this.detailBtnLoading = data.Id
+          this.cancelEditOrderProfit()
           this.getOrderDetail([data.Id])
           break
         case 'pending':
@@ -616,6 +672,15 @@ export default {
           break
         case 'delete':
           this.handleDeleteOrder(data.Id)
+          break
+        case 'editProfit':
+          this.editOrderProfit(data)
+          break
+        case 'saveEditProfit':
+          this.saveOrderProfit()
+          break
+        case 'cancelEditProfit':
+          this.cancelEditOrderProfit()
           break
       }
     },
@@ -662,6 +727,29 @@ export default {
       }).catch(e => {
         console.log(e)
       })
+    },
+    // 编辑订单利润
+    editOrderProfit(data) {
+      this.editingOrderProfitInfo = { ...data }
+    },
+    // 保存订单利润
+    saveOrderProfit() {
+      // TODO
+      const params = 'OrderID=' + this.editingOrderProfitInfo.Id + '&Profit=' + this.editingOrderProfitInfo.Profit + '&GetGoodsPrice=' + this.editingOrderProfitInfo.GetGoodsPrice + '&RefundPrice=' + this.editingOrderProfitInfo.RefundPrice
+      updateProfitCostByOrderID(params)
+        .then(res => {
+          if (res.success) {
+            this.$message.success('操作成功')
+            this.cancelEditOrderProfit()
+            this.getList()
+          }
+        })
+        .catch(e => {
+          console.log(e)
+        })
+    },
+    cancelEditOrderProfit() {
+      this.editingOrderProfitInfo = {}
     }
   }
 }

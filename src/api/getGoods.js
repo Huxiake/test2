@@ -8,6 +8,14 @@ export function getGoodsList(params) {
   })
 }
 
+// 获取待打印列表
+export function getToPrintList(params) {
+  return request({
+    url: '/getgoods/getToPrintList?' + params,
+    method: 'get'
+  })
+}
+
 // 获取拿货反馈
 export function getFeedback(params) {
   return request({

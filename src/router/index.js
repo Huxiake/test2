@@ -47,20 +47,7 @@ export const constantRoutes = [
         name: 'allstock',
         component: () => import('@/views/stock/index'),
         meta: { title: '库存管理' }
-        // meta: { title: '库存管理', icon: 'kucun' }
       },
-      // {
-      //   path: 'ali',
-      //   name: 'alistock',
-      //   component: () => import('@/views/stock/index'),
-      //   meta: { title: '阿里库存', icon: 'kucun' }
-      // },
-      // {
-      //   path: 'ny',
-      //   name: 'nystock',
-      //   component: () => import('@/views/stock/index'),
-      //   meta: { title: '南油库存', icon: 'kucun' }
-      // },
       {
         path: 'index/scaningEnter',
         name: 'scaningEnter',
@@ -108,8 +95,7 @@ export const constantRoutes = [
   {
     path: '/goods',
     component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
+    name: 'goods',
     meta: { title: '拿货管理' },
     children: [
       {
@@ -129,6 +115,39 @@ export const constantRoutes = [
         name: 'toPrint',
         component: () => import('@/views/get_goods/toPrint'),
         meta: { title: '待打印' }
+      }
+    ]
+  },
+
+  {
+    path: '/dataCenter',
+    name: 'dataCenter',
+    component: Layout,
+    meta: { title: '数据中心' },
+    children: [
+      {
+        path: 'aliIncome',
+        name: 'aliIncome',
+        component: () => import('@/views/dataCenter/ali/income'),
+        meta: { title: '阿里收入' }
+      },
+      {
+        path: 'aliRefund',
+        name: 'aliRefund',
+        component: () => import('@/views/dataCenter/ali/refund'),
+        meta: { title: '阿里退款' }
+      },
+      {
+        path: 'otherIncome',
+        name: 'otherIncome',
+        component: () => import('@/views/dataCenter/other/otherIncome'),
+        meta: { title: '自建收入' }
+      },
+      {
+        path: 'otherRefund',
+        name: 'otherRefund',
+        component: () => import('@/views/dataCenter/other/otherRefund'),
+        meta: { title: '自建退款' }
       }
     ]
   },

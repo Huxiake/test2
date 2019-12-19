@@ -9,7 +9,7 @@
           <el-col :span="17">
             <el-button type="primary" size="mini" @click="toPrint">打印</el-button>
             <el-button type="warning" size="mini" @click="tempPrint">临时打印</el-button>
-            <el-button type="success" size="mini" @click="toGet(selectList)">完成</el-button>
+            <el-button type="success" size="mini" @click="selectList.length > 0 ? toGet(selectList) : 1">完成</el-button>
           </el-col>
           <el-col :span="2">
             <el-select v-model="paginator.GoodsStatus" size="mini" placeholder="拿货状态">
