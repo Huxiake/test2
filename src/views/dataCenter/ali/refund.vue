@@ -37,8 +37,21 @@
             <el-button type="primary" size="mini" @click="getList">查询</el-button>
           </el-col>
           <el-col style="width:77px;margin-bottom: 17px;">
-            <!-- <el-button size="mini" @click="1">导出数据</el-button> -->
+            <el-button size="mini" @click="exportXlsx">导出数据</el-button>
           </el-col>
+        </el-row>
+        <el-row>
+          <div style="font-size: 14px; margin-top: 13px;margin-bottom: 13px;">
+            <span>
+              总实付金额：
+              {{ totalRealPrice }}
+            </span>
+            <el-divider direction="vertical" />
+            <span>
+              总退款金额：
+              {{ totalRefundPrice }}
+            </span>
+          </div>
         </el-row>
       </div>
       <div class="box-table">
@@ -60,8 +73,8 @@
             </template>
           </el-table-column>
           <el-table-column label="实收金额" prop="GoodsRealPrice" align="center" />
-          <el-table-column label="拿货成本" prop="GetGoodsPrice" align="center" />
-          <el-table-column label="利润" prop="Profit" align="center" />
+          <el-table-column label="退款金额" prop="RefundPrice" align="center" />
+          <!-- <el-table-column label="利润" prop="Profit" align="center" /> -->
           <!-- <el-table-column label="操作" prop="" align="center" width="138">
             <template slot-scope="scope">
               <a v-if="scope.row.Id === editSkuInfo.Id" style="color:#409eff" @click="handleSkuSave()">保存<br></a>
@@ -97,7 +110,8 @@
 
 <script>
 import {
-  orderList
+  orderList,
+  exportRefundFile
 } from '@/api/order'
 
 // import {
@@ -129,7 +143,9 @@ export default {
       },
       paginatorInfo: {}, // 分页信息
       selectList: [],
-      pickerDate: ''
+      pickerDate: '',
+      totalRealPrice: 0, // 总付款金额
+      totalRefundPrice: 0 // 总退款金额
     }
   },
   created() {
@@ -151,6 +167,16 @@ export default {
         .then(res => {
           if (res.success) {
             this.tableData = res.data.rows
+            var tempTotalRealPrice = null
+            var tempTotalRefundPrice = null
+            this.tableData = res.data.rows
+            res.data.rows.forEach(item => {
+              console.log(item)
+              tempTotalRealPrice += Number(item.GoodsRealPrice)
+              tempTotalRefundPrice += Number(item.RefundPrice)
+            })
+            this.totalRealPrice = tempTotalRealPrice
+            this.totalRefundPrice = tempTotalRefundPrice
             this.paginatorInfo = res.data.paginator
             this.tableLoading = false
           }
@@ -204,6 +230,15 @@ export default {
     },
     changeDate() {
       this.paginator.Date = '["' + this.pickerDate.join('","') + '"]'
+    },
+    exportXlsx() {
+      const orderIdlist = 'OrderIDList=[' + this.selectList.join(',') + ']'
+      exportRefundFile(orderIdlist)
+        .then(res => {
+          if (res.success) {
+            window.open(res.data.URL)
+          }
+        })
     }
   }
 }

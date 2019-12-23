@@ -206,7 +206,7 @@
               v-for="item in groupList"
               :key="item.Id"
               :label="item.GroupName"
-              :value="item.Id"
+              :value="String(item.Id)"
             />
           </el-select>
         </el-form-item>

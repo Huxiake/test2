@@ -79,3 +79,11 @@ export function setDefaultGetGoodsNum(params) {
     method: 'post'
   })
 }
+
+// 删除待打印项目
+export function deleteToPrintItem(params) {
+  return request({
+    url: '/getgoods/deleteToPrintItem?' + params,
+    method: 'post'
+  })
+}

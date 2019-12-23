@@ -163,10 +163,18 @@ export function markRefund(params) {
   })
 }
 
-// 根据idlist导出利润文件
+// 根据idlist导出利润统计文件
 export function exportProfitFile(params) {
   return request({
     url: '/order/exportProfitFile?' + params,
+    method: 'post'
+  })
+}
+
+// 根据idlist导出退款统计文件
+export function exportRefundFile(params) {
+  return request({
+    url: '/order/exportRefundFile?' + params,
     method: 'post'
   })
 }

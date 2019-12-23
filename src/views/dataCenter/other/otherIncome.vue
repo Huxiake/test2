@@ -37,8 +37,26 @@
             <el-button type="primary" size="mini" @click="getList">查询</el-button>
           </el-col>
           <el-col style="width:77px;margin-bottom: 17px;">
-            <!-- <el-button size="mini" @click="1">导出数据</el-button> -->
+            <el-button size="mini" @click="exportXlsx">导出数据</el-button>
           </el-col>
+        </el-row>
+        <el-row>
+          <div style="font-size: 14px; margin-top: 13px;margin-bottom: 13px;">
+            <span>
+              总实付金额：
+              {{ totalRealPrice }}
+            </span>
+            <el-divider direction="vertical" />
+            <span>
+              总拿货金额：
+              {{ totalGetGoodsPrice }}
+            </span>
+            <el-divider direction="vertical" />
+            <span>
+              总利润：
+              {{ totalProfit }}
+            </span>
+          </div>
         </el-row>
       </div>
       <div class="box-table">
@@ -97,12 +115,9 @@
 
 <script>
 import {
-  orderList
+  orderList,
+  exportProfitFile
 } from '@/api/order'
-
-// import {
-//   markOrderDetailStatus
-// } from '@/api/order'
 
 import qs from 'qs'
 // import DropdownButton from '@/views/components/DropdownButton'
@@ -129,7 +144,10 @@ export default {
       },
       paginatorInfo: {}, // 分页信息
       selectList: [],
-      pickerDate: ''
+      pickerDate: '',
+      totalRealPrice: 0, // 总付款金额
+      totalGetGoodsPrice: 0, // 总拿货金额
+      totalProfit: 0 // 总利润
     }
   },
   created() {
@@ -150,7 +168,18 @@ export default {
       orderList(searchAttrs)
         .then(res => {
           if (res.success) {
+            var tempTotalRealPrice = null
+            var tempTotalGetGoodsPrice = null
+            var tempTotalProfit = null
             this.tableData = res.data.rows
+            res.data.rows.forEach(item => {
+              tempTotalRealPrice += Number(item.GoodsRealPrice)
+              tempTotalGetGoodsPrice += Number(item.GetGoodsPrice)
+              tempTotalProfit += Number(item.Profit)
+            })
+            this.totalRealPrice = tempTotalRealPrice
+            this.totalGetGoodsPrice = tempTotalGetGoodsPrice
+            this.totalProfit = tempTotalProfit
             this.paginatorInfo = res.data.paginator
             this.tableLoading = false
           }
@@ -204,6 +233,15 @@ export default {
     },
     changeDate() {
       this.paginator.Date = '["' + this.pickerDate.join('","') + '"]'
+    },
+    exportXlsx() {
+      const orderIdlist = 'OrderIDList=[' + this.selectList.join(',') + ']'
+      exportProfitFile(orderIdlist)
+        .then(res => {
+          if (res.success) {
+            window.open(res.data.URL)
+          }
+        })
     }
   }
 }

@@ -175,6 +175,13 @@ export const constantRoutes = [
     component: () => import('@/views/components/downGetGoodsTemp'),
     meta: { title: '临时标签打印' }
   },
+  {
+    path: '/downToPrint',
+    name: 'downToPrint',
+    hidden: true,
+    component: () => import('@/views/components/downToPrint'),
+    meta: { title: '打印待打印列表' }
+  },
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

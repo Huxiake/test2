@@ -115,7 +115,7 @@ export default {
       },
       printVisible: false,
       visible: false,
-      printNum: 0,
+      printNum: 1,
       overTime: (new Date()).valueOf()
     }
   },

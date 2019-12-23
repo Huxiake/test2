@@ -6,6 +6,13 @@
       </div>
       <div class="box-tools">
         <el-row :gutter="4" type="flex" justify="end">
+          <el-col :span="2">
+            <el-select v-model="paginator.PrintStatus" size="mini" placeholder="打印状态">
+              <el-option label="全部" value="" />
+              <el-option label="待打印" value="0" />
+              <el-option label="已打印" value="1" />
+            </el-select>
+          </el-col>
           <el-col :span="4">
             <el-input
               v-model="paginator.OrderNum"
@@ -82,7 +89,7 @@
             </template>
           </el-table-column>
           <el-table-column label="数量" prop="Amount" align="center" />
-          <!-- <el-table-column label="备注" prop="Remark" align="center" />
+          <!-- <el-table-column label="备注" prop="Remark" align="center" /> -->
           <el-table-column label="操作" prop="" align="center" width="138">
             <template slot-scope="scope">
               <a v-if="scope.row.Id === editSkuInfo.Id" style="color:#409eff" @click="handleSkuSave()">保存<br></a>
@@ -90,15 +97,13 @@
               <DropdownButton
                 v-else
                 :items="[
-                  { name: '编辑', type: 'edit', if: true },
-                  { name: '完成', type: 'get', if: true },
-                  { name: '搁置', type: 'omit', if: true },
+                  { name: '删除', type: 'delete', if: true },
                 ]"
                 :data="scope"
                 @command="handleCommand"
               />
             </template>
-          </el-table-column> -->
+          </el-table-column>
         </el-table>
         <el-pagination
           :current-page="paginatorInfo.currentPage"
@@ -114,41 +119,25 @@
         />
       </div>
     </el-card>
-    <!-- 临时打印dialog -->
-    <el-dialog title="临时打印" :visible.sync="dialogTempPrintVisible" :close-on-click-modal="false" :modal="true" top="5vh" :lock-scroll="false">
-      <el-input v-model="tempGoodsInfo" type="textarea" autofocus placeholder="按行输入,每行一个拿货信息" autosize />
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogTempPrintVisible = false">取 消</el-button>
-        <el-button type="primary" @click="emitTempPrint">确 定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import {
   getToPrintList,
-  editGetGoodsInfo,
-  getGetGoodsNumListBySpuID,
-  setDefaultGetGoodsNum,
-  markGet
+  deleteToPrintItem
 } from '@/api/getGoods'
 
-import {
-  markOrderDetailStatus
-} from '@/api/order'
-
 import qs from 'qs'
-// import DropdownButton from '@/views/components/DropdownButton'
+import DropdownButton from '@/views/components/DropdownButton'
 
 export default {
-  // components: {
-  //   DropdownButton
-  // },
+  components: {
+    DropdownButton
+  },
   data() {
     return {
       dialogScanfVisible: false,
-      dialogTempPrintVisible: false,
       tableData: [],
       paginator: {
         offset: 0,
@@ -204,7 +193,7 @@ export default {
     toPrint() {
       if (this.selectList.length !== 0) {
         const { href } = this.$router.resolve({
-          path: '/downGetGoods',
+          path: '/downToPrint',
           query: {
             id: this.selectList.join(',')
           }
@@ -245,93 +234,6 @@ export default {
     leaveOption() {
       this.focusNum = null
     },
-    handleDefaultNum(val) {
-      this.$confirm('是否设置为默认拿货编码?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }).then(() => {
-        const data = qs.stringify({ spuID: this.editSkuInfo.SpuId, num: val })
-        setDefaultGetGoodsNum(data).then(res => {
-          if (res.success) {
-            this.$message.success('设置成功!')
-          }
-        })
-      })
-    },
-    handleEditGetGoodsInfo(item) {
-      // Id
-      this.editSkuInfo.Id = item.Id
-      this.editSkuInfo.SkuId = item.ErpSku.Id
-      this.editSkuInfo.SpuId = item.ErpSku.ErpSpu.Id
-      // Info
-      this.editSkuInfo.GetGoodsNum = item.ErpSku.ErpSpu.GetGoodsNum
-      this.editSkuInfo.Price = item.ErpSku.ErpSpu.Price
-      this.editSkuInfo.Remark = item.Remark
-      this.editSkuInfo.orderDetailID = item.OrderDetails.Id
-      // 根据item.spuId拉取getGoodsList, 存至getgoodslist
-      getGetGoodsNumListBySpuID(item.ErpSku.ErpSpu.Id).then(res => {
-        if (res.success) {
-          this.getGoodsNumList = Array.from(res.data.rows, i => { return i.GetGoodsNum })
-          console.log(this.getGoodsNumList)
-        }
-      })
-    },
-    handleSkuSave() {
-      if (this.getGoodsNumList.indexOf(this.editSkuInfo.GetGoodsNum) === -1) {
-        this.editSkuInfo.newNum = 1
-        this.$confirm('是否将新编号设置为默认拿货编码?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'info'
-        })
-          .then(() => {
-            const data = qs.stringify({ spuID: this.editSkuInfo.SpuId, num: this.editSkuInfo.GetGoodsNum })
-            setDefaultGetGoodsNum(data).then(res => {
-              if (res.success) {
-                this.$message.success('设置成功!')
-              }
-            })
-          })
-          .finally(() => {
-            this.emitSkuSave()
-          })
-      } else {
-        this.editSkuInfo.newNum = 0
-        this.emitSkuSave()
-      }
-    },
-    emitSkuSave() {
-      const getGoodsInfo = qs.stringify(this.editSkuInfo)
-      editGetGoodsInfo(getGoodsInfo).then(res => {
-        if (res.success) {
-          this.editSkuInfo = {
-            'Id': '',
-            'SkuId': null,
-            'SpuId': null,
-            'GetGoodsNum': '',
-            'Remark': '',
-            'Price': '',
-            'Amount': ''
-          }
-          this.$message.success('保存成功!')
-          this.getList()
-        } else {
-          this.$message.error('处理失败，请重试!')
-        }
-      })
-    },
-    cancelEditSku() {
-      this.editSkuInfo = {
-        'Id': '',
-        'SkuId': null,
-        'SpuId': null,
-        'GetGoodsNum': '',
-        'Remark': '',
-        'Price': '',
-        'Amount': ''
-      }
-    },
     // 分页下一页
     handleCurrentChange(val) {
       this.paginator.offset = this.paginator.limit * (val - 1)
@@ -348,50 +250,31 @@ export default {
     nextPage() {
       this.paginator.offset = this.paginator.offset + this.paginator.limit
     },
-    tempPrint() {
-      this.dialogTempPrintVisible = true
-    },
-    emitTempPrint() {
-      // console.log(this.tempGoodsInfo.split('\n'))
-      const { href } = this.$router.resolve({
-        path: '/downGetGoodsTemp',
-        query: {
-          tempGoodsInfo: this.tempGoodsInfo
-        }
-      })
-      window.open(href, '_blank')
-    },
-    toGet(list = []) {
-      const idList = '[' + list.join(',') + ']'
-      markGet(idList)
-        .then(res => {
-          if (res.success) {
-            this.$message.success('操作成功')
-            this.getList()
-          }
-        })
-    },
-    toOmit(data) {
-      markOrderDetailStatus(data.OrderDetails.Id, data.OrderDetails.ErpOrder.Id, 'omit', data.Amount)
-        .then(res => {
-          if (res.success) {
-            this.$message.success('操作成功')
-            this.getList()
-          }
-        })
-    },
     handleCommand({ type, data }) {
       switch (type) {
-        case 'edit':
-          this.handleEditGetGoodsInfo(data)
-          break
-        case 'get':
-          this.toGet([data.Id])
-          break
-        case 'omit':
-          this.toOmit(data)
+        case 'delete':
+          this.handleDeleteToPrintItem(data.Id)
           break
       }
+    },
+    // 删除待打印项目
+    handleDeleteToPrintItem(id) {
+      this.$confirm('此操作将删除该条记录, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteToPrintItem('id=[' + id + ']')
+          .then(res => {
+            if (res.success) {
+              this.$message.success('删除成功')
+              this.getList()
+            }
+          })
+          .catch(e => {
+            console.log(e)
+          })
+      })
     }
   }
 }

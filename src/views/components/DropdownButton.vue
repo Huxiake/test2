@@ -3,7 +3,7 @@
     <!-- 单个操作 -->
     <el-button
       v-if="itemList.length === 1"
-      size="medium"
+      size="mini"
       @click="handleCommand(itemList[0])"
     >
       {{ itemList[0].name }}
@@ -12,7 +12,7 @@
     <el-dropdown v-else-if="itemList.length > 1" class="content__dropdown" trigger="click" @command="handleCommand">
       <el-button
         class="dropdownBtn"
-        size="medium"
+        size="mini"
         plain
       >
         <div v-loading="itemList[0].loading" element-loading-spinner="el-icon-loading" element-loading-custom-class="down-loading" class="dropdownBtn-name" @click.stop="() => { !name && handleCommand(itemList[0]) }">

@@ -40,6 +40,24 @@
             <el-button size="mini" @click="exportXlsx">导出数据</el-button>
           </el-col>
         </el-row>
+        <el-row>
+          <div style="font-size: 14px; margin-top: 13px;margin-bottom: 13px;">
+            <span>
+              总实付金额：
+              {{ totalRealPrice }}
+            </span>
+            <el-divider direction="vertical" />
+            <span>
+              总拿货金额：
+              {{ totalGetGoodsPrice }}
+            </span>
+            <el-divider direction="vertical" />
+            <span>
+              总利润：
+              {{ totalProfit }}
+            </span>
+          </div>
+        </el-row>
       </div>
       <div class="box-table">
         <el-table
@@ -54,9 +72,9 @@
               <div>{{ scope.row.OrderNum }}</div>
             </template>
           </el-table-column>
-          <el-table-column label="时间" align="center">
+          <el-table-column label="核对时间" align="center">
             <template slot-scope="scope">
-              {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD hh:mm:ss') }}
+              {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD HH:mm:ss') }}
             </template>
           </el-table-column>
           <el-table-column label="实收金额" prop="GoodsRealPrice" align="center" />
@@ -130,7 +148,10 @@ export default {
       },
       paginatorInfo: {}, // 分页信息
       selectList: [],
-      pickerDate: ''
+      pickerDate: '',
+      totalRealPrice: 0, // 总付款金额
+      totalGetGoodsPrice: 0, // 总拿货金额
+      totalProfit: 0 // 总利润
     }
   },
   created() {
@@ -138,20 +159,28 @@ export default {
   },
   methods: {
     getList() {
-      console.log(this.pickerDate)
       this.tableLoading = true
       if (this.pickerDate !== '' && this.pickerDate !== null) {
-        console.log('if')
         this.paginator.Date = '["' + this.pickerDate.join('","') + '"]'
       } else {
-        console.log('else')
         this.paginator.Date = ''
       }
       const searchAttrs = qs.stringify(this.paginator)
       orderList(searchAttrs)
         .then(res => {
           if (res.success) {
+            var tempTotalRealPrice = null
+            var tempTotalGetGoodsPrice = null
+            var tempTotalProfit = null
             this.tableData = res.data.rows
+            res.data.rows.forEach(item => {
+              tempTotalRealPrice += Number(item.GoodsRealPrice)
+              tempTotalGetGoodsPrice += Number(item.GetGoodsPrice)
+              tempTotalProfit += Number(item.Profit)
+            })
+            this.totalRealPrice = tempTotalRealPrice
+            this.totalGetGoodsPrice = tempTotalGetGoodsPrice
+            this.totalProfit = tempTotalProfit
             this.paginatorInfo = res.data.paginator
             this.tableLoading = false
           }
