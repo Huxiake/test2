@@ -169,7 +169,7 @@
           <el-table-column label="商品信息" prop="OrderNum" width="201" />
           <el-table-column label="时间" align="center">
             <template slot-scope="scope">
-              {{ $moment(scope.row.OrderCreateTime).format('YYYY-MM-DD hh:mm:ss') }}
+              {{ $moment(scope.row.OrderPayTime).format('YYYY-MM-DD hh:mm:ss') }}
             </template>
           </el-table-column>
           <el-table-column :formatter="tableFormatter" label="实付金额" align="center">
